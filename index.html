@@ -8,6 +8,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
   <style>
     :root {
       --black: #0a0a0a;
@@ -15,1292 +19,302 @@
       --mid: #4a4a47;
       --muted: #8a8a85;
       --border: #e0e0dc;
-      --alive: #0a0a0a;
       --ko: #b91c1c;
       --display: 'Barlow Condensed', sans-serif;
       --body: 'DM Sans', sans-serif;
       --mono: 'JetBrains Mono', ui-monospace, monospace;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-    body {
-      background: var(--white);
-      color: var(--black);
-      font-family: var(--body);
-      font-size: 16px;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
+    body { background: var(--white); color: var(--black); font-family: var(--body); font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+
+    /* ─── SETUP OVERLAY ─── */
+    .setup-overlay { position: fixed; inset: 0; background: var(--black); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 40px 24px; overflow-y: auto; }
+    .setup-box { max-width: 640px; width: 100%; color: var(--white); }
+    .setup-box h2 { font-family: var(--display); font-size: clamp(40px,6vw,64px); font-weight: 900; text-transform: uppercase; line-height: 0.95; color: var(--white); margin-bottom: 24px; }
+    .setup-box h2 em { color: oklch(55% 0 0); font-style: italic; }
+    .setup-box > p { font-size: 15px; color: oklch(65% 0 0); line-height: 1.8; margin-bottom: 28px; }
+    .setup-step { display: flex; gap: 16px; align-items: flex-start; padding: 18px 0; border-top: 1px solid oklch(20% 0 0); }
+    .setup-step:last-of-type { border-bottom: 1px solid oklch(20% 0 0); margin-bottom: 28px; }
+    .setup-num { font-family: var(--display); font-size: 28px; font-weight: 900; color: oklch(40% 0 0); line-height: 1; flex-shrink: 0; width: 32px; padding-top: 2px; }
+    .setup-step-text { font-size: 14px; color: oklch(70% 0 0); line-height: 1.7; }
+    .setup-step-text strong { color: var(--white); font-weight: 600; }
+    .setup-step-text code { font-family: var(--mono); font-size: 12px; background: oklch(18% 0 0); padding: 2px 7px; border-radius: 2px; color: #86efac; }
+    .setup-note { font-family: var(--mono); font-size: 11px; color: oklch(45% 0 0); letter-spacing: 0.03em; line-height: 1.7; }
 
     /* ─── NAV ─── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 48px;
-      background: var(--white);
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.3s, background 0.3s;
-    }
-    nav.scrolled {
-      border-bottom-color: var(--border);
-      background: oklch(97% 0 0 / 0.95);
-      backdrop-filter: blur(12px);
-    }
-    .nav-logo {
-      font-family: var(--display);
-      font-size: 22px;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--black);
-      text-decoration: none;
-    }
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; background: var(--white); border-bottom: 1px solid transparent; transition: border-color 0.3s, background 0.3s; }
+    nav.scrolled { border-bottom-color: var(--border); background: oklch(97% 0 0 / 0.95); backdrop-filter: blur(12px); }
+    .nav-logo { font-family: var(--display); font-size: 22px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--black); text-decoration: none; }
     .nav-logo span { color: var(--mid); }
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 36px;
-      list-style: none;
-    }
-    .nav-links a {
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--mid);
-      text-decoration: none;
-      transition: color 0.2s;
-      cursor: pointer;
-    }
+    .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+    .nav-links a { font-size: 13px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mid); text-decoration: none; transition: color 0.2s; cursor: pointer; }
     .nav-links a:hover { color: var(--black); }
-    .nav-cta {
-      background: var(--black);
-      color: var(--white) !important;
-      padding: 10px 22px;
-      border-radius: 2px;
-      font-weight: 600 !important;
-      transition: background 0.2s !important;
-      border: 1px solid var(--black);
-    }
-    .nav-cta:hover { background: var(--white) !important; color: var(--black) !important; }
+
+    /* ─── CONNECTION INDICATOR ─── */
+    .conn-indicator { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--mid); }
+    .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: oklch(70% 0 0); transition: background 0.4s; flex-shrink: 0; }
+    .conn-dot.live { background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.5); animation: pulse 1.6s ease-in-out infinite; }
+    .conn-dot.offline { background: #ef4444; }
 
     /* ─── HERO ─── */
-    .hero {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      padding-top: 80px;
-      overflow: hidden;
-    }
-    .hero-left {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 80px 48px;
-    }
-    .hero-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--mid);
-      margin-bottom: 32px;
-    }
-    .hero-tag::before {
-      content: '';
-      display: block;
-      width: 24px;
-      height: 2px;
-      background: var(--mid);
-    }
-    h1 {
-      font-family: var(--display);
-      font-size: clamp(64px, 7.5vw, 116px);
-      font-weight: 900;
-      line-height: 0.92;
-      letter-spacing: -0.01em;
-      text-transform: uppercase;
-      color: var(--black);
-      margin-bottom: 32px;
-    }
+    .hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; padding-top: 80px; overflow: hidden; }
+    .hero-left { display: flex; flex-direction: column; justify-content: center; padding: 80px 48px; }
+    .hero-tag { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); margin-bottom: 32px; }
+    .hero-tag::before { content: ''; display: block; width: 24px; height: 2px; background: var(--mid); }
+    h1 { font-family: var(--display); font-size: clamp(64px, 7.5vw, 116px); font-weight: 900; line-height: 0.92; letter-spacing: -0.01em; text-transform: uppercase; color: var(--black); margin-bottom: 32px; }
     h1 em { font-style: italic; color: var(--black); }
-    .hero-sub {
-      font-size: 17px;
-      font-weight: 400;
-      color: var(--mid);
-      max-width: 460px;
-      line-height: 1.7;
-      margin-bottom: 40px;
-      text-wrap: pretty;
-    }
-    .hero-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 24px;
-      margin-bottom: 40px;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--mid);
-      letter-spacing: 0.04em;
-    }
-    .hero-meta strong {
-      display: block;
-      font-family: var(--display);
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--black);
-      letter-spacing: 0.02em;
-      margin-top: 4px;
-    }
-    .hero-actions {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--black);
-      color: var(--white);
-      font-family: var(--display);
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 16px 32px;
-      text-decoration: none;
-      border-radius: 2px;
-      transition: background 0.2s, color 0.2s, transform 0.15s;
-      border: 1px solid var(--black);
-      cursor: pointer;
-    }
-    .btn-primary:hover {
-      background: var(--white);
-      color: var(--black);
-      transform: translateY(-1px);
-    }
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--display);
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--black);
-      text-decoration: none;
-      border-bottom: 2px solid var(--black);
-      padding-bottom: 2px;
-      transition: color 0.2s, border-color 0.2s;
-      background: none;
-      border-left: none;
-      border-right: none;
-      border-top: none;
-      cursor: pointer;
-    }
+    .hero-sub { font-size: 17px; font-weight: 400; color: var(--mid); max-width: 460px; line-height: 1.7; margin-bottom: 40px; text-wrap: pretty; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 40px; font-family: var(--mono); font-size: 12px; color: var(--mid); letter-spacing: 0.04em; }
+    .hero-meta strong { display: block; font-family: var(--display); font-size: 22px; font-weight: 800; color: var(--black); letter-spacing: 0.02em; margin-top: 4px; }
+    .hero-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .btn-primary { display: inline-flex; align-items: center; gap: 10px; background: var(--black); color: var(--white); font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 16px 32px; text-decoration: none; border-radius: 2px; transition: background 0.2s, color 0.2s, transform 0.15s; border: 1px solid var(--black); cursor: pointer; }
+    .btn-primary:hover { background: var(--white); color: var(--black); transform: translateY(-1px); }
+    .btn-secondary { display: inline-flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--black); text-decoration: none; border-bottom: 2px solid var(--black); padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; background: none; border-left: none; border-right: none; border-top: none; cursor: pointer; }
     .btn-secondary:hover { color: var(--mid); border-color: var(--mid); }
 
-    /* ─── HERO RIGHT (countdown card) ─── */
-    .hero-right {
-      position: relative;
-      background: var(--black);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    .chart-bg {
-      position: absolute;
-      inset: 0;
-      opacity: 0.06;
-      overflow: hidden;
-    }
+    /* ─── HERO RIGHT ─── */
+    .hero-right { position: relative; background: var(--black); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .chart-bg { position: absolute; inset: 0; opacity: 0.06; overflow: hidden; }
     .chart-bg svg { width: 100%; height: 100%; }
-    .hero-card {
-      position: relative;
-      z-index: 2;
-      background: oklch(15% 0 0);
-      border: 1px solid oklch(30% 0 0);
-      border-radius: 4px;
-      padding: 36px;
-      width: 380px;
-      animation: float 4s ease-in-out infinite;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
-    }
-    .card-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: oklch(55% 0 0);
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .card-label::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 12px #22c55e;
-      animation: pulse 1.6s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
-    }
-    .card-title {
-      font-family: var(--display);
-      font-size: 18px;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: oklch(70% 0 0);
-      letter-spacing: 0.08em;
-      margin-bottom: 4px;
-    }
-    .countdown-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin: 18px 0 24px;
-    }
-    .cd-cell {
-      background: oklch(20% 0 0);
-      border-radius: 3px;
-      padding: 14px 6px;
-      text-align: center;
-    }
-    .cd-val {
-      font-family: var(--display);
-      font-size: 36px;
-      font-weight: 900;
-      color: var(--white);
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-    }
-    .cd-label {
-      font-size: 9px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: oklch(50% 0 0);
-      margin-top: 6px;
-    }
-    .card-deadline {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: oklch(55% 0 0);
-      letter-spacing: 0.04em;
-      text-align: center;
-      padding-top: 18px;
-      border-top: 1px solid oklch(22% 0 0);
-    }
+    .hero-card { position: relative; z-index: 2; background: oklch(15% 0 0); border: 1px solid oklch(30% 0 0); border-radius: 4px; padding: 36px; width: 380px; animation: float 4s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    .card-label { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: oklch(55% 0 0); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .card-label::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 12px #22c55e; animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+    .card-title { font-family: var(--display); font-size: 18px; font-weight: 700; text-transform: uppercase; color: oklch(70% 0 0); letter-spacing: 0.08em; margin-bottom: 4px; }
+    .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0 24px; }
+    .cd-cell { background: oklch(20% 0 0); border-radius: 3px; padding: 14px 6px; text-align: center; }
+    .cd-val { font-family: var(--display); font-size: 36px; font-weight: 900; color: var(--white); line-height: 1; font-variant-numeric: tabular-nums; }
+    .cd-label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: oklch(50% 0 0); margin-top: 6px; }
+    .card-deadline { font-family: var(--mono); font-size: 11px; color: oklch(55% 0 0); letter-spacing: 0.04em; text-align: center; padding-top: 18px; border-top: 1px solid oklch(22% 0 0); }
     .card-deadline strong { color: var(--white); font-weight: 600; }
-    .hero-tag-bottom {
-      position: absolute;
-      bottom: 32px;
-      left: 40px;
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: oklch(40% 0 0);
-    }
+    .hero-tag-bottom { position: absolute; bottom: 32px; left: 40px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(40% 0 0); }
 
     /* ─── MARQUEE ─── */
-    .marquee-strip {
-      background: var(--black);
-      padding: 16px 0;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-    .marquee-inner {
-      display: inline-flex;
-      gap: 0;
-      animation: marquee 24s linear infinite;
-    }
-    .marquee-inner span {
-      font-family: var(--display);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: oklch(40% 0 0);
-      padding: 0 32px;
-    }
+    .marquee-strip { background: var(--black); padding: 16px 0; overflow: hidden; white-space: nowrap; }
+    .marquee-inner { display: inline-flex; gap: 0; animation: marquee 24s linear infinite; }
+    .marquee-inner span { font-family: var(--display); font-size: 13px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: oklch(40% 0 0); padding: 0 32px; }
     .marquee-inner span.accent { color: oklch(55% 0 0); }
-    @keyframes marquee {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
-    }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-    /* ─── SECTION BASE ─── */
+    /* ─── SECTION ─── */
     section { padding: 120px 48px; }
-    .section-tag {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--black);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .section-tag::before {
-      content: '';
-      display: block;
-      width: 20px;
-      height: 2px;
-      background: var(--black);
-    }
-    h2 {
-      font-family: var(--display);
-      font-size: clamp(48px, 6vw, 80px);
-      font-weight: 900;
-      text-transform: uppercase;
-      line-height: 0.95;
-      letter-spacing: -0.01em;
-      color: var(--black);
-    }
+    .section-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--black); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .section-tag::before { content: ''; display: block; width: 20px; height: 2px; background: var(--black); }
+    h2 { font-family: var(--display); font-size: clamp(48px, 6vw, 80px); font-weight: 900; text-transform: uppercase; line-height: 0.95; letter-spacing: -0.01em; color: var(--black); }
 
     /* ─── SCOREBOARD ─── */
     .scoreboard-wrap { max-width: 1280px; margin: 0 auto; }
-    .scoreboard-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 56px;
-      gap: 40px;
-      flex-wrap: wrap;
-    }
-    .scoreboard-header p {
-      max-width: 460px;
-      font-size: 16px;
-      color: var(--mid);
-      line-height: 1.7;
-      text-wrap: pretty;
-    }
-    .scoreboard {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 0;
-      align-items: stretch;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .player {
-      padding: 48px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-      background: var(--white);
-      transition: background 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-    .player.eliminated {
-      background: oklch(96% 0 0);
-    }
-    .player.eliminated::after {
-      content: 'KO';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(-12deg);
-      font-family: var(--display);
-      font-size: 240px;
-      font-weight: 900;
-      color: var(--ko);
-      opacity: 0.07;
-      pointer-events: none;
-      letter-spacing: -0.02em;
-    }
-    .player.winner {
-      background: var(--black);
-      color: var(--white);
-    }
-    .player.winner .player-name,
-    .player.winner .stat-num,
-    .player.winner .player-status-text { color: var(--white); }
-    .player.winner .stat-label,
-    .player.winner .player-tag { color: oklch(55% 0 0); }
+    .scoreboard-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 56px; gap: 40px; flex-wrap: wrap; }
+    .scoreboard-header p { max-width: 460px; font-size: 16px; color: var(--mid); line-height: 1.7; text-wrap: pretty; }
+    .scoreboard { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: stretch; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+    .player { padding: 48px 40px; display: flex; flex-direction: column; gap: 28px; background: var(--white); transition: background 0.3s; position: relative; overflow: hidden; }
+    .player.eliminated { background: oklch(96% 0 0); }
+    .player.eliminated::after { content: 'KO'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg); font-family: var(--display); font-size: 240px; font-weight: 900; color: var(--ko); opacity: 0.07; pointer-events: none; letter-spacing: -0.02em; }
+    .player.winner { background: var(--black); color: var(--white); }
+    .player.winner .player-name, .player.winner .stat-num, .player.winner .player-status-text { color: var(--white); }
+    .player.winner .stat-label, .player.winner .player-tag { color: oklch(55% 0 0); }
     .player.winner .stat-block { background: oklch(15% 0 0); border-color: oklch(22% 0 0); }
-    .player.winner::after {
-      content: '👑';
-      position: absolute;
-      top: 28px;
-      right: 32px;
-      font-size: 36px;
-      animation: bounce 1.6s ease-in-out infinite;
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
-    }
-    .player-tag {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--mid);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .player-name {
-      font-family: var(--display);
-      font-size: clamp(40px, 5vw, 64px);
-      font-weight: 900;
-      text-transform: uppercase;
-      line-height: 0.95;
-      letter-spacing: -0.01em;
-      color: var(--black);
-      cursor: text;
-      outline: none;
-      border-bottom: 2px solid transparent;
-      padding-bottom: 4px;
-      transition: border-color 0.2s;
-      word-break: break-word;
-    }
-    .player-name:hover, .player-name:focus {
-      border-bottom-color: var(--border);
-    }
-    .player-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      width: fit-content;
-    }
-    .status-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 10px rgba(34,197,94,0.5);
-      animation: pulse 1.6s ease-in-out infinite;
-    }
-    .player.eliminated .status-dot {
-      background: var(--ko);
-      box-shadow: 0 0 10px rgba(185,28,28,0.4);
-      animation: none;
-    }
-    .player.winner .status-dot {
-      background: #fbbf24;
-      box-shadow: 0 0 12px rgba(251,191,36,0.6);
-    }
-    .player-status-text {
-      font-family: var(--display);
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-    .player-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-    .stat-block {
-      background: oklch(96% 0 0);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 16px 14px;
-    }
-    .stat-num {
-      font-family: var(--display);
-      font-size: 32px;
-      font-weight: 900;
-      color: var(--black);
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-    }
-    .stat-label {
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--mid);
-      margin-top: 6px;
-    }
-    .player-action {
-      margin-top: auto;
-    }
-    /* ─── TIMEZONE ─── */
-    .player-tz-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 12px;
-    }
-    .tz-select {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      color: var(--black);
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 6px 10px;
-      cursor: pointer;
-      width: 100%;
-      outline: none;
-      transition: border-color 0.2s;
-      appearance: auto;
-    }
+    .player.winner::after { content: '👑'; position: absolute; top: 28px; right: 32px; font-size: 36px; animation: bounce 1.6s ease-in-out infinite; }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    .player-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mid); display: flex; align-items: center; gap: 8px; }
+    .player-name { font-family: var(--display); font-size: clamp(40px, 5vw, 64px); font-weight: 900; text-transform: uppercase; line-height: 0.95; letter-spacing: -0.01em; color: var(--black); cursor: text; outline: none; border-bottom: 2px solid transparent; padding-bottom: 4px; transition: border-color 0.2s; word-break: break-word; }
+    .player-name:hover, .player-name:focus { border-bottom-color: var(--border); }
+    .player-status { display: inline-flex; align-items: center; gap: 10px; width: fit-content; }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px rgba(34,197,94,0.5); animation: pulse 1.6s ease-in-out infinite; }
+    .player.eliminated .status-dot { background: var(--ko); box-shadow: 0 0 10px rgba(185,28,28,0.4); animation: none; }
+    .player.winner .status-dot { background: #fbbf24; box-shadow: 0 0 12px rgba(251,191,36,0.6); }
+    .player-status-text { font-family: var(--display); font-size: 14px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+    .player-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .stat-block { background: oklch(96% 0 0); border: 1px solid var(--border); border-radius: 3px; padding: 16px 14px; }
+    .stat-num { font-family: var(--display); font-size: 32px; font-weight: 900; color: var(--black); line-height: 1; font-variant-numeric: tabular-nums; }
+    .stat-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); margin-top: 6px; }
+    .player-action { margin-top: auto; }
+    .player-tz-wrap { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+    .tz-select { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--black); background: var(--white); border: 1px solid var(--border); border-radius: 2px; padding: 6px 10px; cursor: pointer; width: 100%; outline: none; transition: border-color 0.2s; appearance: auto; }
     .tz-select:hover:not(:disabled) { border-color: var(--black); }
     .tz-select:focus { border-color: var(--black); }
-    .tz-select:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
-    .tz-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-      min-height: 14px;
-    }
-    .player-name.locked {
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-    .player-name.locked:hover,
-    .player-name.locked:focus {
-      background: transparent;
-      outline: none;
-      box-shadow: none;
-    }
-    .player-tz-wrap.locked .tz-label::after {
-      content: ' · 🔒 locked';
-      opacity: 0.5;
-    }
-    .timeline-5col {
-      grid-template-columns: 36px 1fr 1fr 90px 90px !important;
-    }
-    .mark-btn {
-      width: 100%;
-      background: var(--black);
-      color: var(--white);
-      font-family: var(--display);
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 18px;
-      border: 1px solid var(--black);
-      border-radius: 2px;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s, transform 0.15s;
-    }
-    .mark-btn:hover:not(:disabled) {
-      background: var(--white);
-      color: var(--black);
-      transform: translateY(-1px);
-    }
-    .mark-btn:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-      background: oklch(85% 0 0);
-      color: var(--mid);
-      border-color: oklch(85% 0 0);
-    }
-    .mark-btn.done {
-      background: var(--white);
-      color: var(--black);
-      border-color: var(--black);
-    }
-    .mark-btn.done::before {
-      content: '✓ ';
-      font-weight: 900;
-    }
-    .vs-divider {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--black);
-      color: var(--white);
-      font-family: var(--display);
-      font-size: 32px;
-      font-weight: 900;
-      letter-spacing: 0.04em;
-      padding: 0 24px;
-      writing-mode: horizontal-tb;
-    }
+    .tz-select:disabled { opacity: 0.45; cursor: not-allowed; }
+    .tz-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.04em; min-height: 14px; }
+    .player-name.locked { cursor: not-allowed; opacity: 0.7; }
+    .player-name.locked:hover, .player-name.locked:focus { background: transparent; outline: none; }
+    .player-tz-wrap.locked .tz-label::after { content: ' · 🔒 locked'; opacity: 0.5; }
+    .timeline-5col { grid-template-columns: 36px 1fr 1fr 90px 90px !important; }
+    .mark-btn { width: 100%; background: var(--black); color: var(--white); font-family: var(--display); font-size: 15px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 18px; border: 1px solid var(--black); border-radius: 2px; cursor: pointer; transition: background 0.2s, color 0.2s, transform 0.15s; }
+    .mark-btn:hover:not(:disabled) { background: var(--white); color: var(--black); transform: translateY(-1px); }
+    .mark-btn:disabled { opacity: 0.35; cursor: not-allowed; background: oklch(85% 0 0); color: var(--mid); border-color: oklch(85% 0 0); }
+    .mark-btn.done { background: var(--white); color: var(--black); border-color: var(--black); }
+    .mark-btn.done::before { content: '✓ '; font-weight: 900; }
+    .vs-divider { display: flex; align-items: center; justify-content: center; background: var(--black); color: var(--white); font-family: var(--display); font-size: 32px; font-weight: 900; letter-spacing: 0.04em; padding: 0 24px; }
 
-    /* ─── POT / PRIZE ─── */
-    #pot {
-      background: var(--black);
-      color: var(--white);
-    }
-    .pot-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 80px;
-      align-items: center;
-    }
-    #pot .section-tag { color: var(--white); }
-    #pot .section-tag::before { background: var(--white); }
-    #pot h2 { color: var(--white); }
-    #pot h2 em { font-style: italic; }
-    .pot-desc {
-      font-size: 16px;
-      color: oklch(65% 0 0);
-      line-height: 1.8;
-      margin: 24px 0 32px;
-      text-wrap: pretty;
-    }
-    .pot-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .pot-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 18px;
-      background: oklch(15% 0 0);
-      border: 1px solid oklch(22% 0 0);
-      border-radius: 3px;
-      font-family: var(--mono);
-      font-size: 13px;
-      color: oklch(70% 0 0);
-    }
-    .pot-row strong {
-      font-family: var(--display);
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: 0.04em;
-    }
-    .pot-display {
-      background: oklch(12% 0 0);
-      border: 1px solid oklch(22% 0 0);
-      border-radius: 6px;
-      padding: 48px 40px;
-      text-align: center;
-    }
-    .pot-display-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: oklch(50% 0 0);
-      margin-bottom: 16px;
-    }
-    .pot-display-amount {
-      font-family: var(--display);
-      font-size: clamp(80px, 10vw, 140px);
-      font-weight: 900;
-      color: var(--white);
-      line-height: 1;
-      letter-spacing: -0.02em;
-      font-variant-numeric: tabular-nums;
-    }
-    .pot-display-amount span.cents {
-      font-size: 0.4em;
-      color: oklch(45% 0 0);
-      vertical-align: top;
-      margin-left: 4px;
-    }
-    .pot-display-sub {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: oklch(50% 0 0);
-      letter-spacing: 0.06em;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid oklch(20% 0 0);
-    }
+    /* ─── POT ─── */
+    #pot { background: var(--black); color: var(--white); }
+    .pot-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    #pot .section-tag { color: var(--white); } #pot .section-tag::before { background: var(--white); } #pot h2 { color: var(--white); }
+    .pot-desc { font-size: 16px; color: oklch(65% 0 0); line-height: 1.8; margin: 24px 0 32px; text-wrap: pretty; }
+    .pot-stack { display: flex; flex-direction: column; gap: 12px; }
+    .pot-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: oklch(15% 0 0); border: 1px solid oklch(22% 0 0); border-radius: 3px; font-family: var(--mono); font-size: 13px; color: oklch(70% 0 0); }
+    .pot-row strong { font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--white); letter-spacing: 0.04em; }
+    .pot-display { background: oklch(12% 0 0); border: 1px solid oklch(22% 0 0); border-radius: 6px; padding: 48px 40px; text-align: center; }
+    .pot-display-label { font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: oklch(50% 0 0); margin-bottom: 16px; }
+    .pot-display-amount { font-family: var(--display); font-size: clamp(80px, 10vw, 140px); font-weight: 900; color: var(--white); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .pot-display-sub { font-family: var(--mono); font-size: 12px; color: oklch(50% 0 0); letter-spacing: 0.06em; margin-top: 20px; padding-top: 20px; border-top: 1px solid oklch(20% 0 0); }
 
     /* ─── TIMELINE ─── */
-    #timeline-section {
-      background: var(--white);
-    }
+    #timeline-section { background: var(--white); }
     .timeline-wrap { max-width: 1200px; margin: 0 auto; }
-    .timeline-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 48px;
-      gap: 40px;
-      flex-wrap: wrap;
-    }
-    .timeline-header p {
-      max-width: 480px;
-      font-size: 15px;
-      color: var(--mid);
-      line-height: 1.7;
-    }
-    .timeline-legend {
-      display: flex;
-      gap: 20px;
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--mid);
-      letter-spacing: 0.04em;
-      flex-wrap: wrap;
-    }
+    .timeline-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; gap: 40px; flex-wrap: wrap; }
+    .timeline-header p { max-width: 480px; font-size: 15px; color: var(--mid); line-height: 1.7; }
+    .timeline-legend { display: flex; gap: 20px; font-family: var(--mono); font-size: 11px; color: var(--mid); letter-spacing: 0.04em; flex-wrap: wrap; margin-bottom: 20px; }
     .legend-item { display: inline-flex; align-items: center; gap: 8px; }
-    .legend-swatch {
-      width: 14px;
-      height: 14px;
-      border-radius: 2px;
-      border: 1px solid var(--border);
-    }
+    .legend-swatch { width: 14px; height: 14px; border-radius: 2px; border: 1px solid var(--border); }
     .swatch-done { background: var(--black); border-color: var(--black); }
     .swatch-missed { background: var(--ko); border-color: var(--ko); }
     .swatch-pending { background: var(--white); }
     .swatch-upcoming { background: oklch(92% 0 0); border-style: dashed; }
-    .timeline-grid {
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .timeline-row {
-      display: grid;
-      grid-template-columns: 60px 1fr 1fr 1fr;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.15s;
-    }
+    .timeline-grid { border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+    .timeline-row { display: grid; grid-template-columns: 60px 1fr 1fr 1fr; align-items: center; border-bottom: 1px solid var(--border); transition: background 0.15s; }
     .timeline-row:last-child { border-bottom: none; }
-    .timeline-row.head {
-      background: oklch(96% 0 0);
-      font-family: var(--display);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--mid);
-    }
-    .timeline-row.next {
-      background: oklch(98% 0 0);
-      box-shadow: inset 3px 0 0 var(--black);
-    }
-    .timeline-cell {
-      padding: 14px 18px;
-      font-size: 13px;
-      color: var(--black);
-      font-family: var(--mono);
-    }
-    .timeline-cell.idx {
-      font-family: var(--display);
-      font-weight: 800;
-      font-size: 16px;
-      color: var(--mid);
-    }
+    .timeline-row.head { background: oklch(96% 0 0); font-family: var(--display); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid); }
+    .timeline-row.next { background: oklch(98% 0 0); box-shadow: inset 3px 0 0 var(--black); }
+    .timeline-cell { padding: 14px 18px; font-size: 13px; color: var(--black); font-family: var(--mono); }
+    .timeline-cell.idx { font-family: var(--display); font-weight: 800; font-size: 16px; color: var(--mid); }
     .timeline-row.next .timeline-cell.idx { color: var(--black); }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--display);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 5px 10px;
-      border-radius: 2px;
-      border: 1px solid var(--border);
-      background: var(--white);
-      color: var(--mid);
-    }
-    .pill.done {
-      background: var(--black);
-      color: var(--white);
-      border-color: var(--black);
-    }
-    .pill.missed {
-      background: var(--ko);
-      color: var(--white);
-      border-color: var(--ko);
-    }
-    .pill.pending {
-      background: var(--white);
-      color: var(--black);
-      border-color: var(--black);
-    }
-    .pill.upcoming {
-      background: oklch(96% 0 0);
-      color: var(--muted);
-      border-style: dashed;
-    }
-    .timeline-toggle {
-      text-align: center;
-      margin-top: 28px;
-    }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-family: var(--display); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 10px; border-radius: 2px; border: 1px solid var(--border); background: var(--white); color: var(--mid); }
+    .pill.done { background: var(--black); color: var(--white); border-color: var(--black); }
+    .pill.missed { background: var(--ko); color: var(--white); border-color: var(--ko); }
+    .pill.pending { background: var(--white); color: var(--black); border-color: var(--black); }
+    .pill.upcoming { background: oklch(96% 0 0); color: var(--muted); border-style: dashed; }
+    .timeline-toggle { text-align: center; margin-top: 28px; }
 
     /* ─── RULES ─── */
-    .rules-wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 80px;
-      align-items: start;
-    }
+    .rules-wrap { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
     .rules-text h2 { margin-bottom: 28px; }
-    .rules-text p {
-      font-size: 16px;
-      color: var(--mid);
-      line-height: 1.8;
-      margin-bottom: 20px;
-      text-wrap: pretty;
-    }
+    .rules-text p { font-size: 16px; color: var(--mid); line-height: 1.8; margin-bottom: 20px; text-wrap: pretty; }
     .rules-text p strong { color: var(--black); font-weight: 600; }
-    .rules-list {
-      display: flex;
-      flex-direction: column;
-      border-top: 1px solid var(--border);
-    }
-    .rule {
-      display: grid;
-      grid-template-columns: 64px 1fr;
-      align-items: start;
-      gap: 20px;
-      padding: 24px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .rule-num {
-      font-family: var(--display);
-      font-size: 36px;
-      font-weight: 900;
-      color: var(--black);
-      line-height: 1;
-    }
-    .rule-text strong {
-      display: block;
-      font-family: var(--display);
-      font-size: 18px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 6px;
-    }
+    .rules-list { display: flex; flex-direction: column; border-top: 1px solid var(--border); }
+    .rule { display: grid; grid-template-columns: 64px 1fr; align-items: start; gap: 20px; padding: 24px 0; border-bottom: 1px solid var(--border); }
+    .rule-num { font-family: var(--display); font-size: 36px; font-weight: 900; color: var(--black); line-height: 1; }
+    .rule-text strong { display: block; font-family: var(--display); font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
     .rule-text span { font-size: 14px; color: var(--mid); line-height: 1.6; }
 
-    /* ─── SHARE ─── */
-    #share {
-      background: oklch(96% 0 0);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .share-inner {
-      max-width: 800px;
-      margin: 0 auto;
-      text-align: center;
-    }
-    .share-inner .section-tag {
-      justify-content: center;
-    }
-    .share-inner .section-tag::before { display: none; }
+    /* ─── SHARE / MANAGE ─── */
+    #share { background: oklch(96% 0 0); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .share-inner { max-width: 800px; margin: 0 auto; text-align: center; }
+    .share-inner .section-tag { justify-content: center; } .share-inner .section-tag::before { display: none; }
     .share-inner h2 { margin-bottom: 20px; }
-    .share-inner p {
-      font-size: 17px;
-      color: var(--mid);
-      line-height: 1.7;
-      margin-bottom: 36px;
-      text-wrap: pretty;
-    }
-    .share-url-box {
-      display: flex;
-      gap: 0;
-      max-width: 640px;
-      margin: 0 auto 24px;
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-      background: var(--white);
-    }
-    .share-url {
-      flex: 1;
-      padding: 16px 20px;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--mid);
-      background: var(--white);
-      border: none;
-      outline: none;
-      letter-spacing: 0.02em;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .share-copy {
-      background: var(--black);
-      color: var(--white);
-      border: none;
-      font-family: var(--display);
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 16px 28px;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-    .share-copy:hover { background: var(--mid); }
-    .share-copy.copied { background: #22c55e; }
-    .share-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .share-actions button {
-      background: transparent;
-      border: 1px solid var(--border);
-      padding: 10px 18px;
-      font-family: var(--display);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--mid);
-      border-radius: 2px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .share-actions button:hover {
-      border-color: var(--black);
-      color: var(--black);
-    }
-    .share-actions button.danger:hover {
-      border-color: var(--ko);
-      color: var(--ko);
-    }
+    .share-inner p { font-size: 17px; color: var(--mid); line-height: 1.7; margin-bottom: 36px; text-wrap: pretty; }
+    .share-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .share-actions button { background: transparent; border: 1px solid var(--border); padding: 10px 18px; font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); border-radius: 2px; cursor: pointer; transition: all 0.2s; }
+    .share-actions button:hover { border-color: var(--black); color: var(--black); }
+    .share-actions button.danger:hover { border-color: var(--ko); color: var(--ko); }
 
-    /* ─── BANNER (winner / status) ─── */
-    .banner {
-      padding: 32px 48px;
-      text-align: center;
-      font-family: var(--display);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      border-bottom: 1px solid var(--border);
-      display: none;
-    }
+    /* ─── BANNER ─── */
+    .banner { padding: 32px 48px; text-align: center; font-family: var(--display); letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--border); display: none; }
     .banner.show { display: block; }
-    .banner.live {
-      background: var(--white);
-      color: var(--black);
-    }
-    .banner.winner {
-      background: var(--black);
-      color: var(--white);
-    }
-    .banner.draw {
-      background: oklch(96% 0 0);
-      color: var(--ko);
-    }
-    .banner-tag {
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      color: var(--mid);
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
+    .banner.winner { background: var(--black); color: var(--white); }
+    .banner.draw { background: oklch(96% 0 0); color: var(--ko); }
+    .banner-tag { font-size: 11px; letter-spacing: 0.18em; color: var(--mid); margin-bottom: 8px; font-weight: 600; }
     .banner.winner .banner-tag { color: oklch(60% 0 0); }
-    .banner-headline {
-      font-size: clamp(28px, 4vw, 48px);
-      font-weight: 900;
-      line-height: 1;
-    }
+    .banner-headline { font-size: clamp(28px, 4vw, 48px); font-weight: 900; line-height: 1; }
 
     /* ─── FOOTER ─── */
-    footer {
-      padding: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
-      gap: 24px;
-    }
-    .footer-logo {
-      font-family: var(--display);
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--black);
-    }
+    footer { padding: 48px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 24px; }
+    .footer-logo { font-family: var(--display); font-size: 18px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--black); }
     .footer-logo span { color: var(--mid); }
-    .footer-meta {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-    }
-    .footer-links {
-      display: flex;
-      gap: 24px;
-      list-style: none;
-    }
-    .footer-links a {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--mid);
-      text-decoration: none;
-      transition: color 0.2s;
-      cursor: pointer;
-    }
+    .footer-meta { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
+    .footer-links { display: flex; gap: 24px; list-style: none; }
+    .footer-links a { font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mid); text-decoration: none; transition: color 0.2s; cursor: pointer; }
     .footer-links a:hover { color: var(--black); }
 
-    /* ─── MODAL (confirm) ─── */
-    .modal-bg {
-      position: fixed;
-      inset: 0;
-      background: rgba(10,10,10,0.6);
-      backdrop-filter: blur(6px);
-      z-index: 200;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
+    /* ─── MODAL ─── */
+    .modal-bg { position: fixed; inset: 0; background: rgba(10,10,10,0.6); backdrop-filter: blur(6px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; }
     .modal-bg.show { display: flex; }
-    .modal {
-      background: var(--white);
-      border-radius: 4px;
-      padding: 40px;
-      max-width: 440px;
-      width: 100%;
-    }
-    .modal h3 {
-      font-family: var(--display);
-      font-size: 28px;
-      font-weight: 900;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-    .modal p {
-      font-size: 14px;
-      color: var(--mid);
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-    .modal-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-    }
-    .modal-actions button {
-      font-family: var(--display);
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 12px 24px;
-      border-radius: 2px;
-      cursor: pointer;
-      border: 1px solid var(--black);
-    }
-    .modal-actions .cancel {
-      background: var(--white);
-      color: var(--black);
-    }
-    .modal-actions .confirm {
-      background: var(--black);
-      color: var(--white);
-    }
-    .modal-actions .confirm.danger {
-      background: var(--ko);
-      border-color: var(--ko);
-    }
-
-    /* ─── SYNC BANNER ─── */
-    .sync-banner {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 200;
-      background: var(--black);
-      color: var(--white);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 12px 32px;
-      transform: translateY(-100%);
-      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
-      flex-wrap: wrap;
-    }
-    .sync-banner.show {
-      transform: translateY(0);
-    }
-    .sync-banner-text {
-      font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing: 0.04em;
-      color: oklch(70% 0 0);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .sync-banner-text::before {
-      content: '';
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #facc15;
-      box-shadow: 0 0 8px #facc15;
-      flex-shrink: 0;
-    }
-    .sync-banner-text strong {
-      color: var(--white);
-    }
-    .sync-banner-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .sync-copy-btn {
-      font-family: var(--display);
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      background: var(--white);
-      color: var(--black);
-      border: none;
-      padding: 8px 18px;
-      border-radius: 2px;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-    .sync-copy-btn:hover { background: oklch(80% 0 0); }
-    .sync-copy-btn.copied { background: #22c55e; color: var(--white); }
-    .sync-dismiss-btn {
-      font-family: var(--mono);
-      font-size: 12px;
-      background: none;
-      border: none;
-      color: oklch(55% 0 0);
-      cursor: pointer;
-      padding: 4px 8px;
-      transition: color 0.2s;
-    }
-    .sync-dismiss-btn:hover { color: var(--white); }
+    .modal { background: var(--white); border-radius: 4px; padding: 40px; max-width: 440px; width: 100%; }
+    .modal h3 { font-family: var(--display); font-size: 28px; font-weight: 900; text-transform: uppercase; margin-bottom: 12px; }
+    .modal p { font-size: 14px; color: var(--mid); line-height: 1.6; margin-bottom: 24px; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    .modal-actions button { font-family: var(--display); font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 24px; border-radius: 2px; cursor: pointer; border: 1px solid var(--black); }
+    .modal-actions .cancel { background: var(--white); color: var(--black); }
+    .modal-actions .confirm { background: var(--black); color: var(--white); }
+    .modal-actions .confirm.danger { background: var(--ko); border-color: var(--ko); }
 
     /* ─── TOAST ─── */
-    .toast {
-      position: fixed;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--black);
-      color: var(--white);
-      padding: 14px 24px;
-      border-radius: 2px;
-      font-family: var(--display);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      opacity: 0;
-      transition: all 0.3s;
-      z-index: 300;
-      pointer-events: none;
-    }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--black); color: var(--white); padding: 14px 24px; border-radius: 2px; font-family: var(--display); font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0; transition: all 0.3s; z-index: 300; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* ─── REVEAL ─── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(28px);
-      transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1);
-    }
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
-    .reveal-delay-1 { transition-delay: 0.1s; }
-    .reveal-delay-2 { transition-delay: 0.2s; }
-    .reveal-delay-3 { transition-delay: 0.3s; }
-    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-1 { transition-delay: 0.1s; } .reveal-delay-2 { transition-delay: 0.2s; } .reveal-delay-3 { transition-delay: 0.3s; } .reveal-delay-4 { transition-delay: 0.4s; }
 
     /* ─── RESPONSIVE ─── */
     @media (max-width: 980px) {
-      nav { padding: 16px 24px; }
-      .nav-links { display: none; }
-      .nav-links.mobile-cta-only { display: flex; gap: 12px; }
-      .nav-links.mobile-cta-only li:not(:last-child) { display: none; }
-      .hero { grid-template-columns: 1fr; }
-      .hero-right { min-height: 420px; }
-      .hero-left { padding: 60px 24px; }
-      section { padding: 80px 24px; }
-      .scoreboard { grid-template-columns: 1fr; }
-      .vs-divider { padding: 16px; font-size: 24px; }
-      .pot-inner { grid-template-columns: 1fr; gap: 40px; }
-      .rules-wrap { grid-template-columns: 1fr; gap: 40px; }
-      .timeline-row { grid-template-columns: 50px 1fr 1fr 1fr; }
-      .timeline-cell { padding: 12px 10px; font-size: 11px; }
+      nav { padding: 16px 24px; } .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; } .hero-right { min-height: 420px; } .hero-left { padding: 60px 24px; }
+      section { padding: 80px 24px; } .scoreboard { grid-template-columns: 1fr; } .vs-divider { padding: 16px; font-size: 24px; }
+      .pot-inner { grid-template-columns: 1fr; gap: 40px; } .rules-wrap { grid-template-columns: 1fr; gap: 40px; }
       footer { flex-direction: column; align-items: flex-start; padding: 32px 24px; }
-      h1 { font-size: clamp(56px, 12vw, 92px); }
-      .hero-card { width: 100%; max-width: 380px; padding: 28px; }
-      .cd-val { font-size: 28px; }
+      h1 { font-size: clamp(56px, 12vw, 92px); } .hero-card { width: 100%; max-width: 380px; padding: 28px; } .cd-val { font-size: 28px; }
     }
     @media (max-width: 540px) {
-      .timeline-row { grid-template-columns: 40px 1fr 1fr 1fr; }
-      .timeline-cell { font-size: 10px; padding: 10px 6px; }
-      .pill { font-size: 9px; padding: 4px 6px; }
-      .pot-display { padding: 32px 20px; }
-      .player { padding: 32px 24px; }
-      .modal { padding: 28px; }
+      .timeline-cell { font-size: 10px; padding: 10px 6px; } .pill { font-size: 9px; padding: 4px 6px; }
+      .pot-display { padding: 32px 20px; } .player { padding: 32px 24px; } .modal { padding: 28px; }
     }
   </style>
 </head>
 <body>
 
+  <!-- ─── SETUP OVERLAY ─── -->
+  <div class="setup-overlay" id="setup-overlay" style="display:none">
+    <div class="setup-box">
+      <h2>Connect<br /><em>Firebase</em><br />First.</h2>
+      <p>This tracker uses Firebase Realtime Database so both you and your friend see updates instantly — no link sharing needed. Free to set up, takes about 2 minutes.</p>
+
+      <div class="setup-step">
+        <div class="setup-num">01</div>
+        <div class="setup-step-text">Go to <strong>console.firebase.google.com</strong> → Create a new project (any name). You can skip Google Analytics.</div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-num">02</div>
+        <div class="setup-step-text">In the left sidebar → <strong>Build → Realtime Database</strong> → Create database → pick any region → start in <strong>test mode</strong> (allows read/write for 30 days — fine for a private race).</div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-num">03</div>
+        <div class="setup-step-text">Go to the <strong>gear icon → Project Settings</strong> → scroll to <em>Your apps</em> → click the <strong>&lt;/&gt;</strong> web icon → register the app → copy the <code>firebaseConfig</code> object shown.</div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-num">04</div>
+        <div class="setup-step-text">Open <code>index.html</code> in a text editor → find <code>FIREBASE_CONFIG</code> near the top of the <code>&lt;script&gt;</code> tag → paste your values in, replacing each <code>YOUR_...</code> placeholder → save and push to GitHub.</div>
+      </div>
+
+      <p class="setup-note">Both you and your friend just need to open the same GitHub Pages URL — no extra setup on their end. The scoreboard will sync automatically within a second of any change.</p>
+    </div>
+  </div>
+
   <!-- ─── NAV ─── -->
   <nav id="main-nav">
     <a class="nav-logo" href="#">imhem<span>.</span></a>
-    <ul class="nav-links" id="nav-links">
+    <ul class="nav-links">
       <li><a href="#scoreboard">Scoreboard</a></li>
       <li><a href="#pot">Pot</a></li>
       <li><a href="#timeline-section">Timeline</a></li>
       <li><a href="#rules">Rules</a></li>
-      <li><a class="nav-cta" onclick="copyShareLink(this)">Share ↗</a></li>
+      <li>
+        <span class="conn-indicator">
+          <span class="conn-dot" id="conn-dot"></span>
+          <span id="conn-label">Connecting…</span>
+        </span>
+      </li>
     </ul>
   </nav>
 
   <!-- ─── STATUS BANNER ─── -->
   <div id="banner" class="banner"></div>
 
-  <!-- ─── SYNC BANNER ─── -->
-  <div class="sync-banner" id="sync-banner">
-    <div class="sync-banner-text">
-      <strong>Race updated</strong> — share the link so the other person sees this change
-    </div>
-    <div class="sync-banner-actions">
-      <button class="sync-copy-btn" id="sync-copy-btn" onclick="syncCopyLink(this)">Copy & Share Link</button>
-      <button class="sync-dismiss-btn" onclick="dismissSyncBanner()">Dismiss</button>
-    </div>
-  </div>
-
   <!-- ─── HERO ─── -->
-  <section class="hero" style="padding: 0;">
+  <section class="hero" style="padding:0">
     <div class="hero-left">
       <div class="hero-tag reveal">The Bet — Race #001</div>
       <h1 class="reveal reveal-delay-1">One Video.<br />Every <em>48</em><br />Hours.</h1>
@@ -1315,12 +329,11 @@
           Mark Today's Video
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M3 8l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
-        <button class="btn-secondary" onclick="copyShareLink(this)">Share Race →</button>
       </div>
     </div>
     <div class="hero-right">
       <div class="chart-bg">
-        <svg viewBox="0 0 600 700" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 600 700" preserveAspectRatio="none" fill="none">
           <line x1="0" y1="100" x2="600" y2="100" stroke="white" stroke-width="1"/>
           <line x1="0" y1="200" x2="600" y2="200" stroke="white" stroke-width="1"/>
           <line x1="0" y1="300" x2="600" y2="300" stroke="white" stroke-width="1"/>
@@ -1337,15 +350,13 @@
       <div class="hero-card">
         <div class="card-label">Live · Next Deadline</div>
         <div class="card-title" id="hc-which">Deadline #1</div>
-        <div class="countdown-grid" id="countdown">
+        <div class="countdown-grid">
           <div class="cd-cell"><div class="cd-val" id="cd-d">--</div><div class="cd-label">Days</div></div>
           <div class="cd-cell"><div class="cd-val" id="cd-h">--</div><div class="cd-label">Hours</div></div>
           <div class="cd-cell"><div class="cd-val" id="cd-m">--</div><div class="cd-label">Min</div></div>
           <div class="cd-cell"><div class="cd-val" id="cd-s">--</div><div class="cd-label">Sec</div></div>
         </div>
-        <div class="card-deadline">
-          Due <strong id="hc-due">—</strong>
-        </div>
+        <div class="card-deadline">Due <strong id="hc-due">—</strong></div>
       </div>
       <div class="hero-tag-bottom" id="race-id">race · imhem · est. 2026</div>
     </div>
@@ -1354,20 +365,13 @@
   <!-- ─── MARQUEE ─── -->
   <div class="marquee-strip">
     <div class="marquee-inner">
-      <span>The Race Is Live</span><span class="accent">✦</span>
-      <span>Winner Takes All</span><span class="accent">✦</span>
-      <span>1 Video / 2 Days</span><span class="accent">✦</span>
-      <span>$100 Per Month</span><span class="accent">✦</span>
-      <span>No Excuses</span><span class="accent">✦</span>
-      <span>One Miss · Game Over</span><span class="accent">✦</span>
+      <span>The Race Is Live</span><span class="accent">✦</span><span>Winner Takes All</span><span class="accent">✦</span>
+      <span>1 Video / 2 Days</span><span class="accent">✦</span><span>$100 Per Month</span><span class="accent">✦</span>
+      <span>No Excuses</span><span class="accent">✦</span><span>One Miss · Game Over</span><span class="accent">✦</span>
       <span>imhem · 2026</span><span class="accent">✦</span>
-      <!-- duplicate for seamless loop -->
-      <span>The Race Is Live</span><span class="accent">✦</span>
-      <span>Winner Takes All</span><span class="accent">✦</span>
-      <span>1 Video / 2 Days</span><span class="accent">✦</span>
-      <span>$100 Per Month</span><span class="accent">✦</span>
-      <span>No Excuses</span><span class="accent">✦</span>
-      <span>One Miss · Game Over</span><span class="accent">✦</span>
+      <span>The Race Is Live</span><span class="accent">✦</span><span>Winner Takes All</span><span class="accent">✦</span>
+      <span>1 Video / 2 Days</span><span class="accent">✦</span><span>$100 Per Month</span><span class="accent">✦</span>
+      <span>No Excuses</span><span class="accent">✦</span><span>One Miss · Game Over</span><span class="accent">✦</span>
       <span>imhem · 2026</span><span class="accent">✦</span>
     </div>
   </div>
@@ -1380,15 +384,15 @@
           <div class="section-tag reveal">Live Scoreboard</div>
           <h2 class="reveal reveal-delay-1">Two<br />Creators.</h2>
         </div>
-        <p class="reveal reveal-delay-2">Click a name to rename and set your timezone — each player's deadline is <strong>midnight in their local timezone</strong>. Name &amp; timezone lock permanently after Round 1 (the 5th).</p>
+        <p class="reveal reveal-delay-2">Click a name to rename and set your timezone — each player's deadline is <strong>midnight in their local timezone</strong>. Name &amp; timezone lock permanently after Round 1.</p>
       </div>
       <div class="scoreboard reveal reveal-delay-2">
+        <!-- Player 1 -->
         <div class="player" id="player-1">
           <div class="player-tag">Player 01</div>
           <div class="player-name" contenteditable="true" data-player="1" id="p1-name" title="Click to rename">imhem</div>
           <div class="player-tz-wrap" id="p1-tz-wrap">
             <select class="tz-select" id="p1-tz-select" onchange="changeTimezone(1, this.value)">
-
               <option value="Australia/Melbourne">🇦🇺 Melbourne (AEST/AEDT)</option>
               <option value="Asia/Bangkok">🇹🇭 Bangkok (ICT)</option>
               <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
@@ -1403,28 +407,23 @@
             </select>
             <div class="tz-label" id="p1-tz-label">—</div>
           </div>
-          <div class="player-status">
-            <div class="status-dot"></div>
-            <div class="player-status-text" id="p1-status">Alive</div>
-          </div>
+          <div class="player-status"><div class="status-dot"></div><div class="player-status-text" id="p1-status">Alive</div></div>
           <div class="player-stats">
             <div class="stat-block"><div class="stat-num" id="p1-done">0</div><div class="stat-label">Videos Done</div></div>
             <div class="stat-block"><div class="stat-num" id="p1-streak">0</div><div class="stat-label">Streak</div></div>
             <div class="stat-block"><div class="stat-num" id="p1-missed">0</div><div class="stat-label">Missed</div></div>
           </div>
-          <div class="player-action">
-            <button class="mark-btn" id="p1-btn" onclick="markDone(1)">Mark Deadline #1</button>
-          </div>
+          <div class="player-action"><button class="mark-btn" id="p1-btn" onclick="markDone(1)">Mark Deadline #1</button></div>
         </div>
 
         <div class="vs-divider">VS</div>
 
+        <!-- Player 2 -->
         <div class="player" id="player-2">
           <div class="player-tag">Player 02</div>
-          <div class="player-name" contenteditable="true" data-player="2" id="p2-name" title="Click to rename">Friend</div>
+          <div class="player-name" contenteditable="true" data-player="2" id="p2-name" title="Click to rename">poe</div>
           <div class="player-tz-wrap" id="p2-tz-wrap">
             <select class="tz-select" id="p2-tz-select" onchange="changeTimezone(2, this.value)">
-
               <option value="Australia/Melbourne">🇦🇺 Melbourne (AEST/AEDT)</option>
               <option value="Asia/Bangkok">🇹🇭 Bangkok (ICT)</option>
               <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
@@ -1439,18 +438,13 @@
             </select>
             <div class="tz-label" id="p2-tz-label">—</div>
           </div>
-          <div class="player-status">
-            <div class="status-dot"></div>
-            <div class="player-status-text" id="p2-status">Alive</div>
-          </div>
+          <div class="player-status"><div class="status-dot"></div><div class="player-status-text" id="p2-status">Alive</div></div>
           <div class="player-stats">
             <div class="stat-block"><div class="stat-num" id="p2-done">0</div><div class="stat-label">Videos Done</div></div>
             <div class="stat-block"><div class="stat-num" id="p2-streak">0</div><div class="stat-label">Streak</div></div>
             <div class="stat-block"><div class="stat-num" id="p2-missed">0</div><div class="stat-label">Missed</div></div>
           </div>
-          <div class="player-action">
-            <button class="mark-btn" id="p2-btn" onclick="markDone(2)">Mark Deadline #1</button>
-          </div>
+          <div class="player-action"><button class="mark-btn" id="p2-btn" onclick="markDone(2)">Mark Deadline #1</button></div>
         </div>
       </div>
     </div>
@@ -1486,7 +480,7 @@
           <div class="section-tag reveal">Deadline Log</div>
           <h2 class="reveal reveal-delay-1">Every<br />Deadline.</h2>
         </div>
-        <p class="reveal reveal-delay-2">Every 48 hours, a new checkpoint. The next pending deadline is highlighted. Past deadlines are locked — they are what they are.</p>
+        <p class="reveal reveal-delay-2">Every 48 hours, a new checkpoint. The next pending deadline is highlighted. Past deadlines are locked.</p>
       </div>
       <div class="timeline-legend reveal reveal-delay-2">
         <div class="legend-item"><div class="legend-swatch swatch-done"></div>Done</div>
@@ -1494,9 +488,7 @@
         <div class="legend-item"><div class="legend-swatch swatch-missed"></div>Missed (KO)</div>
         <div class="legend-item"><div class="legend-swatch swatch-upcoming"></div>Upcoming</div>
       </div>
-      <div class="timeline-grid reveal reveal-delay-3" id="timeline-grid">
-        <!-- populated by JS -->
-      </div>
+      <div class="timeline-grid reveal reveal-delay-3" id="timeline-grid"></div>
       <div class="timeline-toggle">
         <button class="btn-secondary" id="timeline-toggle-btn" onclick="toggleTimelineRange()">Show All Upcoming →</button>
       </div>
@@ -1510,60 +502,26 @@
         <div class="section-tag reveal">The Rules</div>
         <h2 class="reveal reveal-delay-1">Read<br />Carefully.</h2>
         <p class="reveal reveal-delay-2">A bet is only a bet if both sides are clear on the terms. <strong>This is the contract.</strong> Once it's signed, the only way out is to win — or to lose.</p>
-        <p class="reveal reveal-delay-2">Disputes? The middleman holds the deposit. The timeline below is the ledger. The countdown is the judge.</p>
+        <p class="reveal reveal-delay-2">Disputes? The middleman holds the deposit. The timeline is the ledger. The countdown is the judge.</p>
       </div>
       <div class="rules-list reveal reveal-delay-3">
-        <div class="rule">
-          <div class="rule-num">01</div>
-          <div class="rule-text">
-            <strong>One Video Per 48 Hours</strong>
-            <span>Each runner must publish at least one video by the end of every 48-hour window. Window 1 closes at the end of day 2 from race start.</span>
-          </div>
-        </div>
-        <div class="rule">
-          <div class="rule-num">02</div>
-          <div class="rule-text">
-            <strong>$100 Monthly Stake</strong>
-            <span>Both runners deposit $100 to the middleman at the start of each month the race is active. No deposit, no race that month.</span>
-          </div>
-        </div>
-        <div class="rule">
-          <div class="rule-num">03</div>
-          <div class="rule-text">
-            <strong>First Miss = Eliminated</strong>
-            <span>A missed deadline ends the runner's race. The opponent is declared the winner the moment the clock runs out — no make-ups, no make-good videos.</span>
-          </div>
-        </div>
-        <div class="rule">
-          <div class="rule-num">04</div>
-          <div class="rule-text">
-            <strong>Winner Takes The Pot</strong>
-            <span>The middleman releases the entire accumulated deposit to the surviving runner immediately upon elimination of the other.</span>
-          </div>
-        </div>
-        <div class="rule">
-          <div class="rule-num">05</div>
-          <div class="rule-text">
-            <strong>Double Miss = Race Voided</strong>
-            <span>If both runners miss the same deadline, the race is voided and the middleman returns deposits proportionally. (Don't let it come to this.)</span>
-          </div>
-        </div>
+        <div class="rule"><div class="rule-num">01</div><div class="rule-text"><strong>One Video Per 48 Hours</strong><span>Each runner must publish at least one video by the end of every 48-hour window. Window 1 closes at end of day 2 from race start.</span></div></div>
+        <div class="rule"><div class="rule-num">02</div><div class="rule-text"><strong>$100 Monthly Stake</strong><span>Both runners deposit $100 to the middleman at the start of each month the race is active. No deposit, no race that month.</span></div></div>
+        <div class="rule"><div class="rule-num">03</div><div class="rule-text"><strong>First Miss = Eliminated</strong><span>A missed deadline ends the runner's race immediately. No make-ups, no make-good videos.</span></div></div>
+        <div class="rule"><div class="rule-num">04</div><div class="rule-text"><strong>Winner Takes The Pot</strong><span>The middleman releases the entire accumulated deposit to the surviving runner upon elimination of the other.</span></div></div>
+        <div class="rule"><div class="rule-num">05</div><div class="rule-text"><strong>Double Miss = Race Voided</strong><span>If both runners miss the same deadline, the race is voided and the middleman returns deposits proportionally.</span></div></div>
       </div>
     </div>
   </section>
 
-  <!-- ─── SHARE ─── -->
+  <!-- ─── MANAGE ─── -->
   <section id="share">
     <div class="share-inner">
-      <div class="section-tag reveal">Share The Race</div>
-      <h2 class="reveal reveal-delay-1">Send The<br /><em>Link.</em></h2>
-      <p class="reveal reveal-delay-2">This URL contains the entire race state — names, completed deadlines, everything. Send it to your opponent or your middleman. They'll see the same scoreboard you do.</p>
-      <div class="share-url-box reveal reveal-delay-3">
-        <input class="share-url" id="share-url" type="text" readonly />
-        <button class="share-copy" id="share-copy-btn" onclick="copyShareLink(this)">Copy Link</button>
-      </div>
-      <div class="share-actions reveal reveal-delay-4">
-        <button onclick="exportJSON()">Export JSON</button>
+      <div class="section-tag reveal">Auto-Synced</div>
+      <h2 class="reveal reveal-delay-1">Both See<br /><em>Everything.</em></h2>
+      <p class="reveal reveal-delay-2">Changes sync automatically via Firebase — no link sharing needed. Just open the same GitHub Pages URL and the scoreboard updates live on both screens within seconds.</p>
+      <div class="share-actions reveal reveal-delay-3">
+        <button onclick="exportJSON()">Export JSON Backup</button>
         <button onclick="document.getElementById('import-input').click()">Import JSON</button>
         <input type="file" id="import-input" accept=".json,application/json" style="display:none" onchange="importJSON(event)" />
         <button class="danger" onclick="confirmReset()">Reset Race</button>
@@ -1579,9 +537,9 @@
       <li><a href="#pot">Pot</a></li>
       <li><a href="#timeline-section">Timeline</a></li>
       <li><a href="#rules">Rules</a></li>
-      <li><a href="#share">Share</a></li>
+      <li><a href="#share">Manage</a></li>
     </ul>
-    <span class="footer-meta" id="footer-meta">© 2026 — local race tracker</span>
+    <span class="footer-meta" id="footer-meta">© 2026 — firebase synced · imhem</span>
   </footer>
 
   <!-- ─── MODAL ─── -->
@@ -1601,710 +559,414 @@
 
   <script>
   // ════════════════════════════════════════════════════
-  //  STATE & PERSISTENCE
+  //  FIREBASE CONFIG
+  //  Firebase Console → Project Settings → Your apps → SDK setup
   // ════════════════════════════════════════════════════
-  const STORAGE_KEY = 'hemqitect-bet-state-v1';
-  const DEFAULT_STATE = {
-    startDate: '2026-05-03',
-    cadenceDays: 2,
-    monthlyDeposit: 100,
-    p1: { name: 'imhem', completed: [], timezone: 'Australia/Melbourne' },
-    p2: { name: 'poe', completed: [], timezone: 'Asia/Bangkok' }
+  const FIREBASE_CONFIG = {
+    apiKey:            "AIzaSyBj_0-vREwb1Q-3hgbBbnkCcee8WO6qLEQ",
+    authDomain:        "h-creator-challenge.firebaseapp.com",
+    databaseURL:       "https://h-creator-challenge-default-rtdb.firebaseio.com",
+    projectId:         "h-creator-challenge",
+    storageBucket:     "h-creator-challenge.firebasestorage.app",
+    messagingSenderId: "706361578324",
+    appId:             "1:706361578324:web:91a92092bea577ced1eec1"
   };
 
-  let state = loadState();
+  // Database path for this race (change if running multiple races in one DB)
+  const RACE_PATH = 'race';
 
-  function loadState() {
-    // 1. Try URL hash
-    if (location.hash && location.hash.length > 3) {
-      const hash = location.hash.slice(1);
-      const m = hash.match(/^s=(.+)$/);
-      if (m) {
-        try {
-          const decoded = JSON.parse(decodeURIComponent(escape(atob(m[1]))));
-          if (validateState(decoded)) return decoded;
-        } catch(e) { console.warn('URL state invalid', e); }
-      }
-    }
-    // 2. Try localStorage
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (validateState(parsed)) return parsed;
-      }
-    } catch(e) { console.warn('localStorage invalid', e); }
-    // 3. Default
-    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+  // ════════════════════════════════════════════════════
+  //  SETUP CHECK — show overlay if config not filled in
+  // ════════════════════════════════════════════════════
+  const isConfigured = !FIREBASE_CONFIG.apiKey.startsWith('YOUR_');
+  if (!isConfigured) {
+    document.getElementById('setup-overlay').style.display = 'flex';
   }
 
-  function validateState(s) {
-    if (!s || !s.startDate || typeof s.cadenceDays !== 'number') return false;
-    if (!s.p1 || !Array.isArray(s.p1.completed)) return false;
-    if (!s.p2 || !Array.isArray(s.p2.completed)) return false;
-    // Migrate old state that lacks timezone
-    if (!s.p1.timezone) s.p1.timezone = 'Australia/Melbourne';
-    if (!s.p2.timezone) s.p2.timezone = 'Asia/Bangkok';
-    return true;
+  // ════════════════════════════════════════════════════
+  //  FIREBASE INIT
+  // ════════════════════════════════════════════════════
+  let raceRef = null;
+  if (isConfigured) {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    raceRef = firebase.database().ref(RACE_PATH);
   }
 
+  // ════════════════════════════════════════════════════
+  //  DEFAULT STATE
+  // ════════════════════════════════════════════════════
+  const DEFAULT_STATE = {
+    startDate:      '2026-05-03',
+    cadenceDays:    2,
+    monthlyDeposit: 100,
+    p1: { name: 'imhem', completed: [], timezone: 'Australia/Melbourne' },
+    p2: { name: 'poe',   completed: [], timezone: 'Asia/Bangkok' }
+  };
+
+  let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+  // ════════════════════════════════════════════════════
+  //  FIREBASE SERIALISATION
+  //  completed arrays stored as { "0": true, "3": true }
+  //  so Firebase doesn't mess with sparse array indexing
+  // ════════════════════════════════════════════════════
+  function completedToObj(arr) {
+    const obj = {};
+    (arr || []).forEach(i => { obj[String(i)] = true; });
+    return obj;
+  }
+  function objToCompleted(val) {
+    if (!val) return [];
+    if (Array.isArray(val)) return val.map(Number).sort((a, b) => a - b);
+    return Object.keys(val).map(Number).sort((a, b) => a - b);
+  }
+  function toFirebase(s) {
+    return {
+      startDate:      s.startDate,
+      cadenceDays:    s.cadenceDays,
+      monthlyDeposit: s.monthlyDeposit,
+      p1: { name: s.p1.name, timezone: s.p1.timezone, completed: completedToObj(s.p1.completed) },
+      p2: { name: s.p2.name, timezone: s.p2.timezone, completed: completedToObj(s.p2.completed) }
+    };
+  }
+  function fromFirebase(data) {
+    const s = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    if (!data) return s;
+    s.startDate      = data.startDate      || s.startDate;
+    s.cadenceDays    = data.cadenceDays    ?? s.cadenceDays;
+    s.monthlyDeposit = data.monthlyDeposit ?? s.monthlyDeposit;
+    if (data.p1) { s.p1.name = data.p1.name || s.p1.name; s.p1.timezone = data.p1.timezone || s.p1.timezone; s.p1.completed = objToCompleted(data.p1.completed); }
+    if (data.p2) { s.p2.name = data.p2.name || s.p2.name; s.p2.timezone = data.p2.timezone || s.p2.timezone; s.p2.completed = objToCompleted(data.p2.completed); }
+    return s;
+  }
+
+  // ════════════════════════════════════════════════════
+  //  SAVE — writes to Firebase; render() called by listener
+  // ════════════════════════════════════════════════════
   function saveState() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
-    // Update URL hash (silent — no scroll jump)
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
-    history.replaceState(null, '', '#s=' + encoded);
-    updateShareUrl();
-    showSyncBanner();
-  }
-
-  // ─── SYNC BANNER
-  let syncBannerTimer = null;
-  function showSyncBanner() {
-    const banner = document.getElementById('sync-banner');
-    if (!banner) return;
-    banner.classList.add('show');
-    clearTimeout(syncBannerTimer);
-    // Auto-dismiss after 12 seconds
-    syncBannerTimer = setTimeout(() => banner.classList.remove('show'), 12000);
-  }
-  function dismissSyncBanner() {
-    const banner = document.getElementById('sync-banner');
-    if (banner) banner.classList.remove('show');
-    clearTimeout(syncBannerTimer);
-  }
-  async function syncCopyLink(btn) {
-    const url = encodeStateUrl();
-    try {
-      await navigator.clipboard.writeText(url);
-      btn.textContent = '✓ Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = 'Copy & Share Link';
-        btn.classList.remove('copied');
-        dismissSyncBanner();
-      }, 2000);
-    } catch(e) {
-      // Fallback: select the share input
-      const inp = document.getElementById('share-url');
-      if (inp) { inp.select(); try { document.execCommand('copy'); } catch(_) {} }
-      toast('Copy failed — use the Share section below');
-    }
-  }
-
-  function encodeStateUrl() {
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
-    const base = location.origin + location.pathname;
-    return base + '#s=' + encoded;
-  }
-
-  // ════════════════════════════════════════════════════
-  //  DATE / DEADLINE LOGIC  (per-player timezone-aware)
-  // ════════════════════════════════════════════════════
-  function parseLocalDate(dateStr) {
-    // 'YYYY-MM-DD' → local midnight
-    const [y, m, d] = dateStr.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-
-  // Convert a local wall-clock time in a given timezone to a UTC Date object
-  function localToUTC(year, month, day, hour, minute, second, timezone) {
-    // Iterative approach: start with UTC estimate, adjust using Intl
-    let estimate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
-    const fmt = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    if (!raceRef) { toast('Firebase not configured'); return; }
+    raceRef.set(toFirebase(state)).catch(err => {
+      console.error('Firebase write error:', err);
+      toast('Sync failed — check console');
     });
+  }
+
+  // ════════════════════════════════════════════════════
+  //  REAL-TIME LISTENER
+  // ════════════════════════════════════════════════════
+  function startFirebaseSync() {
+    if (!raceRef) return;
+
+    // Connection status dot in nav
+    firebase.database().ref('.info/connected').on('value', snap => {
+      const ok = !!snap.val();
+      const dot   = document.getElementById('conn-dot');
+      const label = document.getElementById('conn-label');
+      if (dot)   dot.className = 'conn-dot ' + (ok ? 'live' : 'offline');
+      if (label) label.textContent = ok ? 'Live' : 'Offline';
+    });
+
+    // Main listener — fires on load + every time data changes in Firebase
+    raceRef.on('value', snapshot => {
+      const data = snapshot.val();
+
+      if (data === null) {
+        // First visit — initialise the database with defaults
+        raceRef.set(toFirebase(DEFAULT_STATE));
+        return;
+      }
+
+      const incoming = fromFirebase(data);
+
+      // Don't clobber a name being actively typed
+      const active = document.activeElement;
+      if (active && active.classList.contains('player-name')) {
+        const n = parseInt(active.dataset.player);
+        if (n === 1) incoming.p1.name = state.p1.name;
+        if (n === 2) incoming.p2.name = state.p2.name;
+      }
+
+      state = incoming;
+      render();
+    }, err => {
+      console.error('Firebase read error:', err);
+      toast('Firebase read failed');
+    });
+  }
+
+  // ════════════════════════════════════════════════════
+  //  DATE / DEADLINE LOGIC
+  // ════════════════════════════════════════════════════
+  function parseLocalDate(str) { const [y,m,d] = str.split('-').map(Number); return new Date(y, m-1, d); }
+
+  function localToUTC(year, month, day, hour, min, sec, tz) {
+    let est = new Date(Date.UTC(year, month-1, day, hour, min, sec));
+    const fmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
     for (let i = 0; i < 3; i++) {
-      const parts = {};
-      fmt.formatToParts(estimate).forEach(p => { if (p.type !== 'literal') parts[p.type] = parseInt(p.value); });
-      const lh = parts.hour === 24 ? 0 : parts.hour;
-      const desired = Date.UTC(year, month - 1, day, hour, minute, second);
-      const actual  = Date.UTC(parts.year, parts.month - 1, parts.day, lh, parts.minute, parts.second);
-      estimate = new Date(estimate.getTime() + (desired - actual));
+      const p = {}; fmt.formatToParts(est).forEach(x => { if (x.type !== 'literal') p[x.type] = parseInt(x.value); });
+      const lh = p.hour === 24 ? 0 : p.hour;
+      est = new Date(est.getTime() + Date.UTC(year, month-1, day, hour, min, sec) - Date.UTC(p.year, p.month-1, p.day, lh, p.minute, p.second));
     }
-    return estimate;
+    return est;
   }
 
-  // Get deadline for a player (23:59:59 in their timezone) at round idx
-  function getPlayerDeadline(idx, timezone) {
-    const base = parseLocalDate(state.startDate);
-    const d = new Date(base);
-    d.setDate(d.getDate() + (idx + 1) * state.cadenceDays);
-    return localToUTC(d.getFullYear(), d.getMonth() + 1, d.getDate(), 23, 59, 59, timezone);
+  function getPlayerDeadline(idx, tz) {
+    const b = parseLocalDate(state.startDate); b.setDate(b.getDate() + (idx+1)*state.cadenceDays);
+    return localToUTC(b.getFullYear(), b.getMonth()+1, b.getDate(), 23, 59, 59, tz);
   }
-
-  // Legacy: get deadline using the viewer's local time (used for hero countdown fallback)
   function getDeadline(idx) {
-    const base = parseLocalDate(state.startDate);
-    const dl = new Date(base);
-    dl.setDate(dl.getDate() + (idx + 1) * state.cadenceDays);
-    dl.setHours(23, 59, 59, 999);
-    return dl;
+    const d = parseLocalDate(state.startDate); d.setDate(d.getDate() + (idx+1)*state.cadenceDays); d.setHours(23,59,59,999); return d;
   }
-
-  // Current deadline index for a specific player based on their timezone
   function getCurrentDeadlineIndexForPlayer(player) {
-    const tz = player.timezone || 'UTC';
-    const now = new Date();
-    let i = 0;
+    const tz = player.timezone || 'UTC'; const now = new Date(); let i = 0;
     while (getPlayerDeadline(i, tz).getTime() < now.getTime()) i++;
     return i;
   }
-
-  // Shared "current index" = earliest across both players (for UI/countdown purposes)
-  function getCurrentDeadlineIndex() {
-    return Math.min(
-      getCurrentDeadlineIndexForPlayer(state.p1),
-      getCurrentDeadlineIndexForPlayer(state.p2)
-    );
-  }
-
-  // Returns true once Round 1 (the 5th) deadline has passed for either player
-  function isRoundOneLocked() {
-    const p1dl = getPlayerDeadline(0, state.p1.timezone || 'Australia/Melbourne');
-    const p2dl = getPlayerDeadline(0, state.p2.timezone || 'Asia/Bangkok');
-    return Date.now() > Math.min(p1dl.getTime(), p2dl.getTime());
-  }
-
+  function getCurrentDeadlineIndex() { return Math.min(getCurrentDeadlineIndexForPlayer(state.p1), getCurrentDeadlineIndexForPlayer(state.p2)); }
+  function isRoundOneLocked() { return Date.now() > Math.min(getPlayerDeadline(0, state.p1.timezone).getTime(), getPlayerDeadline(0, state.p2.timezone).getTime()); }
   function getMissedFor(player) {
-    const completed = new Set(player.completed);
-    const missed = [];
-    const currentIdx = getCurrentDeadlineIndexForPlayer(player);
-    for (let i = 0; i < currentIdx; i++) {
-      if (!completed.has(i)) missed.push(i);
-    }
-    return missed;
+    const done = new Set(player.completed); const cur = getCurrentDeadlineIndexForPlayer(player); const out = [];
+    for (let i = 0; i < cur; i++) if (!done.has(i)) out.push(i);
+    return out;
   }
-
   function getStreak(player) {
-    // Count consecutive completed deadlines ending at the latest completed
-    const sorted = [...player.completed].sort((a, b) => a - b);
-    let streak = 0, expected = -1;
-    for (const idx of sorted) {
-      if (expected === -1 || idx === expected) {
-        streak++;
-        expected = idx + 1;
-      } else {
-        streak = 1;
-        expected = idx + 1;
-      }
-    }
+    const sorted = [...player.completed].sort((a,b)=>a-b); let streak=0, exp=-1;
+    for (const i of sorted) { if (exp===-1||i===exp){streak++;exp=i+1;}else{streak=1;exp=i+1;} }
     return streak;
   }
-
-  function isAlive(player) {
-    return getMissedFor(player).length === 0;
-  }
-
   function getRaceStatus() {
-    const p1Missed = getMissedFor(state.p1);
-    const p2Missed = getMissedFor(state.p2);
-    const p1Alive = p1Missed.length === 0;
-    const p2Alive = p2Missed.length === 0;
-    if (p1Alive && p2Alive) return { kind: 'live' };
-    if (p1Alive && !p2Alive) return { kind: 'winner', winner: 1, eliminatedAt: p2Missed[0] };
-    if (!p1Alive && p2Alive) return { kind: 'winner', winner: 2, eliminatedAt: p1Missed[0] };
-    // Both eliminated — check if same deadline
-    if (p1Missed[0] === p2Missed[0]) return { kind: 'draw', deadline: p1Missed[0] };
-    // Different deadlines: whoever missed FIRST loses, the other "wins"
-    if (p1Missed[0] < p2Missed[0]) return { kind: 'winner', winner: 2, eliminatedAt: p1Missed[0] };
-    return { kind: 'winner', winner: 1, eliminatedAt: p2Missed[0] };
+    const m1=getMissedFor(state.p1), m2=getMissedFor(state.p2);
+    const a1=m1.length===0, a2=m2.length===0;
+    if (a1&&a2) return {kind:'live'};
+    if (a1&&!a2) return {kind:'winner',winner:1,eliminatedAt:m2[0]};
+    if (!a1&&a2) return {kind:'winner',winner:2,eliminatedAt:m1[0]};
+    if (m1[0]===m2[0]) return {kind:'draw',deadline:m1[0]};
+    return m1[0]<m2[0] ? {kind:'winner',winner:2,eliminatedAt:m1[0]} : {kind:'winner',winner:1,eliminatedAt:m2[0]};
   }
-
   function getMonthsInRace() {
-    const start = parseLocalDate(state.startDate);
-    const now = new Date();
-    if (now < start) return 0;
-    let months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
-    // Count current month if at least started — i.e. deposit is paid at start of each month
-    return months + 1;
+    const s=parseLocalDate(state.startDate), n=new Date();
+    if (n<s) return 0;
+    return (n.getFullYear()-s.getFullYear())*12+(n.getMonth()-s.getMonth())+1;
   }
-
-  function getPotTotal() {
-    return getMonthsInRace() * state.monthlyDeposit * 2;
-  }
-
-  function getNextDepositDate() {
-    const start = parseLocalDate(state.startDate);
-    const now = new Date();
-    // Each subsequent deposit is on the 1st of next month (or anniversary day)
-    const next = new Date(now.getFullYear(), now.getMonth() + 1, start.getDate());
-    return next;
-  }
+  function getPotTotal() { return getMonthsInRace()*state.monthlyDeposit*2; }
+  function getNextDepositDate() { const s=parseLocalDate(state.startDate),n=new Date(); return new Date(n.getFullYear(),n.getMonth()+1,s.getDate()); }
 
   // ════════════════════════════════════════════════════
   //  RENDER
   // ════════════════════════════════════════════════════
-  function fmtDate(d) {
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  }
-  function fmtDateTime(d) {
-    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-  }
-  function fmtMoney(n) {
-    return n.toLocaleString('en-US');
-  }
-  function pad(n) { return String(n).padStart(2, '0'); }
+  const fmtDate = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const fmtDT   = d => d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  const fmtMoney = n => n.toLocaleString('en-US');
+  const pad = n => String(n).padStart(2,'0');
 
   function renderHero() {
     document.getElementById('meta-start').textContent = fmtDate(parseLocalDate(state.startDate));
-    const idx = getCurrentDeadlineIndex();
-    const dl = getDeadline(idx);
-    document.getElementById('hc-which').textContent = `Deadline #${idx + 1}`;
-    document.getElementById('hc-due').textContent = fmtDateTime(dl);
-    document.getElementById('race-id').textContent = `race · ${state.p1.name.toLowerCase()} vs ${state.p2.name.toLowerCase()}`;
+    const idx = getCurrentDeadlineIndex(), dl = getDeadline(idx);
+    document.getElementById('hc-which').textContent = `Deadline #${idx+1}`;
+    document.getElementById('hc-due').textContent   = fmtDT(dl);
+    document.getElementById('race-id').textContent  = `race · ${state.p1.name.toLowerCase()} vs ${state.p2.name.toLowerCase()}`;
   }
 
   function renderCountdown() {
-    const status = getRaceStatus();
-    if (status.kind !== 'live') {
-      // Race over — freeze countdown
-      document.getElementById('cd-d').textContent = '00';
-      document.getElementById('cd-h').textContent = '00';
-      document.getElementById('cd-m').textContent = '00';
-      document.getElementById('cd-s').textContent = '00';
-      return;
-    }
-    const idx = getCurrentDeadlineIndex();
-    const dl = getDeadline(idx);
-    const diff = dl.getTime() - Date.now();
-    if (diff <= 0) {
-      document.getElementById('cd-d').textContent = '00';
-      document.getElementById('cd-h').textContent = '00';
-      document.getElementById('cd-m').textContent = '00';
-      document.getElementById('cd-s').textContent = '00';
-      // The deadline just passed — re-render the whole UI (might trigger a KO)
-      render();
-      return;
-    }
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const mins = Math.floor((diff % 3600000) / 60000);
-    const secs = Math.floor((diff % 60000) / 1000);
-    document.getElementById('cd-d').textContent = pad(days);
-    document.getElementById('cd-h').textContent = pad(hours);
-    document.getElementById('cd-m').textContent = pad(mins);
-    document.getElementById('cd-s').textContent = pad(secs);
+    if (getRaceStatus().kind !== 'live') { ['cd-d','cd-h','cd-m','cd-s'].forEach(id => document.getElementById(id).textContent='00'); return; }
+    const diff = getDeadline(getCurrentDeadlineIndex()).getTime() - Date.now();
+    if (diff <= 0) { render(); return; }
+    document.getElementById('cd-d').textContent = pad(Math.floor(diff/86400000));
+    document.getElementById('cd-h').textContent = pad(Math.floor((diff%86400000)/3600000));
+    document.getElementById('cd-m').textContent = pad(Math.floor((diff%3600000)/60000));
+    document.getElementById('cd-s').textContent = pad(Math.floor((diff%60000)/1000));
   }
 
   function renderPlayer(n) {
-    const player = n === 1 ? state.p1 : state.p2;
+    const player = n===1 ? state.p1 : state.p2;
     const status = getRaceStatus();
     const playerEl = document.getElementById(`player-${n}`);
-    const nameEl = document.getElementById(`p${n}-name`);
+    const nameEl   = document.getElementById(`p${n}-name`);
     const statusEl = document.getElementById(`p${n}-status`);
-    const doneEl = document.getElementById(`p${n}-done`);
-    const streakEl = document.getElementById(`p${n}-streak`);
-    const missedEl = document.getElementById(`p${n}-missed`);
-    const btn = document.getElementById(`p${n}-btn`);
+    const btn      = document.getElementById(`p${n}-btn`);
 
     if (document.activeElement !== nameEl) nameEl.textContent = player.name;
-    doneEl.textContent = player.completed.length;
-    streakEl.textContent = getStreak(player);
+    document.getElementById(`p${n}-done`).textContent   = player.completed.length;
+    document.getElementById(`p${n}-streak`).textContent = getStreak(player);
     const missed = getMissedFor(player);
-    missedEl.textContent = missed.length;
+    document.getElementById(`p${n}-missed`).textContent = missed.length;
 
-    playerEl.classList.remove('eliminated', 'winner');
-    if (status.kind === 'winner' && status.winner === n) {
-      playerEl.classList.add('winner');
-      statusEl.textContent = 'Winner';
-    } else if (missed.length > 0) {
-      playerEl.classList.add('eliminated');
-      statusEl.textContent = `KO'd Day ${missed[0] + 1}`;
-    } else if (status.kind === 'draw') {
-      playerEl.classList.add('eliminated');
-      statusEl.textContent = 'Race Voided';
-    } else {
-      statusEl.textContent = 'Alive';
-    }
+    playerEl.classList.remove('eliminated','winner');
+    if (status.kind==='winner'&&status.winner===n) { playerEl.classList.add('winner'); statusEl.textContent='Winner'; }
+    else if (missed.length>0) { playerEl.classList.add('eliminated'); statusEl.textContent=`KO'd Day ${missed[0]+1}`; }
+    else if (status.kind==='draw') { playerEl.classList.add('eliminated'); statusEl.textContent='Race Voided'; }
+    else statusEl.textContent='Alive';
 
-    // Mark button — use per-player deadline index
-    const dlIdx = getCurrentDeadlineIndexForPlayer(player);
-    const completedSet = new Set(player.completed);
-    if (status.kind !== 'live') {
-      btn.textContent = 'Race Over';
-      btn.disabled = true;
-      btn.classList.remove('done');
-    } else if (completedSet.has(dlIdx)) {
-      btn.textContent = `Done · Deadline #${dlIdx + 1}`;
-      btn.classList.add('done');
-      btn.disabled = false;
-    } else {
-      btn.textContent = `Mark Deadline #${dlIdx + 1}`;
-      btn.classList.remove('done');
-      btn.disabled = false;
-    }
+    const dlIdx = getCurrentDeadlineIndexForPlayer(player), cSet = new Set(player.completed);
+    if (status.kind!=='live') { btn.textContent='Race Over'; btn.disabled=true; btn.classList.remove('done'); }
+    else if (cSet.has(dlIdx)) { btn.textContent=`Done · Deadline #${dlIdx+1}`; btn.classList.add('done'); btn.disabled=false; }
+    else { btn.textContent=`Mark Deadline #${dlIdx+1}`; btn.classList.remove('done'); btn.disabled=false; }
 
-    // Timezone display
     const tzEl = document.getElementById(`p${n}-tz-label`);
     if (tzEl) {
-      const tz = player.timezone || 'UTC';
-      const now = new Date();
-      const localTime = now.toLocaleTimeString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false });
-      const dl = getPlayerDeadline(dlIdx, tz);
-      const dlLocal = dl.toLocaleString('en-US', { timeZone: tz, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
-      tzEl.textContent = `${localTime} local · next deadline ${dlLocal}`;
+      const tz = player.timezone||'UTC', now = new Date();
+      const lt = now.toLocaleTimeString('en-US',{timeZone:tz,hour:'2-digit',minute:'2-digit',hour12:false});
+      const dl = getPlayerDeadline(dlIdx,tz);
+      const dlL = dl.toLocaleString('en-US',{timeZone:tz,month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+      tzEl.textContent=`${lt} local · next deadline ${dlL}`;
     }
 
-    // Lock name + timezone after round 1
     const locked = isRoundOneLocked();
-    const nameEl2 = document.getElementById(`p${n}-name`);
-    const tzSel = document.getElementById(`p${n}-tz-select`);
-    const tzWrap = document.getElementById(`p${n}-tz-wrap`);
-    if (locked) {
-      if (nameEl2) {
-        nameEl2.contentEditable = 'false';
-        nameEl2.classList.add('locked');
-        nameEl2.title = 'Locked after Round 1';
-      }
-      if (tzSel) tzSel.disabled = true;
-      if (tzWrap) tzWrap.classList.add('locked');
-    } else {
-      if (nameEl2) {
-        nameEl2.contentEditable = 'true';
-        nameEl2.classList.remove('locked');
-        nameEl2.title = 'Click to rename';
-      }
-      if (tzSel) tzSel.disabled = false;
-      if (tzWrap) tzWrap.classList.remove('locked');
-    }
+    const nameEl2=document.getElementById(`p${n}-name`), tzSel=document.getElementById(`p${n}-tz-select`), tzWrap=document.getElementById(`p${n}-tz-wrap`);
+    if (locked) { if(nameEl2){nameEl2.contentEditable='false';nameEl2.classList.add('locked');nameEl2.title='Locked after Round 1';} if(tzSel)tzSel.disabled=true; if(tzWrap)tzWrap.classList.add('locked'); }
+    else { if(nameEl2){nameEl2.contentEditable='true';nameEl2.classList.remove('locked');nameEl2.title='Click to rename';} if(tzSel)tzSel.disabled=false; if(tzWrap)tzWrap.classList.remove('locked'); }
+
+    const sel=document.getElementById(`p${n}-tz-select`); if(sel&&player.timezone)sel.value=player.timezone;
   }
 
   function renderBanner() {
-    const banner = document.getElementById('banner');
-    const status = getRaceStatus();
-    banner.classList.remove('show', 'live', 'winner', 'draw');
-    if (status.kind === 'winner') {
-      const wName = (status.winner === 1 ? state.p1.name : state.p2.name).toUpperCase();
-      const lName = (status.winner === 1 ? state.p2.name : state.p1.name).toUpperCase();
-      banner.innerHTML = `
-        <div class="banner-tag">Race · Final</div>
-        <div class="banner-headline">👑 ${wName} Wins · ${lName} KO'd Deadline #${status.eliminatedAt + 1}</div>
-      `;
-      banner.classList.add('show', 'winner');
-    } else if (status.kind === 'draw') {
-      banner.innerHTML = `
-        <div class="banner-tag">Race · Voided</div>
-        <div class="banner-headline">Double Miss · Deadline #${status.deadline + 1} · Pot Returns</div>
-      `;
-      banner.classList.add('show', 'draw');
+    const banner=document.getElementById('banner'), status=getRaceStatus();
+    banner.classList.remove('show','winner','draw');
+    if (status.kind==='winner') {
+      const w=(status.winner===1?state.p1.name:state.p2.name).toUpperCase();
+      const l=(status.winner===1?state.p2.name:state.p1.name).toUpperCase();
+      banner.innerHTML=`<div class="banner-tag">Race · Final</div><div class="banner-headline">👑 ${w} Wins · ${l} KO'd Deadline #${status.eliminatedAt+1}</div>`;
+      banner.classList.add('show','winner');
+    } else if (status.kind==='draw') {
+      banner.innerHTML=`<div class="banner-tag">Race · Voided</div><div class="banner-headline">Double Miss · Deadline #${status.deadline+1} · Pot Returns</div>`;
+      banner.classList.add('show','draw');
     }
-    // 'live' → no banner shown
   }
 
   function renderPot() {
-    const months = getMonthsInRace();
-    const pot = getPotTotal();
+    const months=getMonthsInRace(), pot=getPotTotal();
     document.getElementById('pot-months').textContent = months;
-    document.getElementById('pot-total').textContent = fmtMoney(pot);
-    document.getElementById('pot-sub').textContent = `${months} month${months === 1 ? '' : 's'} × $${state.monthlyDeposit * 2}/mo combined deposit`;
-    document.getElementById('pot-next').textContent = fmtDate(getNextDepositDate());
+    document.getElementById('pot-total').textContent  = fmtMoney(pot);
+    document.getElementById('pot-sub').textContent    = `${months} month${months===1?'':'s'} × $${state.monthlyDeposit*2}/mo combined deposit`;
+    document.getElementById('pot-next').textContent   = fmtDate(getNextDepositDate());
   }
+
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   let timelineExpanded = false;
   function renderTimeline() {
-    const grid = document.getElementById('timeline-grid');
-    const status = getRaceStatus();
-    const currentIdx = getCurrentDeadlineIndex();
-    const completedSet1 = new Set(state.p1.completed);
-    const completedSet2 = new Set(state.p2.completed);
+    const grid=document.getElementById('timeline-grid');
+    const cur=getCurrentDeadlineIndex(), c1=new Set(state.p1.completed), c2=new Set(state.p2.completed);
+    const total=timelineExpanded?Math.max(cur+30,30):Math.max(cur+5,12);
+    const p1tz=state.p1.timezone||'Australia/Melbourne', p2tz=state.p2.timezone||'Asia/Bangkok';
+    const pi1=getCurrentDeadlineIndexForPlayer(state.p1), pi2=getCurrentDeadlineIndexForPlayer(state.p2);
 
-    // Determine range
-    const totalToShow = timelineExpanded ? Math.max(currentIdx + 30, 30) : Math.max(currentIdx + 5, 12);
+    let html=`<div class="timeline-row head timeline-5col"><div class="timeline-cell idx">#</div><div class="timeline-cell">${escapeHtml(state.p1.name)} deadline</div><div class="timeline-cell">${escapeHtml(state.p2.name)} deadline</div><div class="timeline-cell">${escapeHtml(state.p1.name)}</div><div class="timeline-cell">${escapeHtml(state.p2.name)}</div></div>`;
 
-    const p1tz = state.p1.timezone || 'Australia/Melbourne';
-    const p2tz = state.p2.timezone || 'Asia/Bangkok';
-    const p1idx = getCurrentDeadlineIndexForPlayer(state.p1);
-    const p2idx = getCurrentDeadlineIndexForPlayer(state.p2);
-
-    let html = `
-      <div class="timeline-row head timeline-5col">
-        <div class="timeline-cell idx">#</div>
-        <div class="timeline-cell">${escapeHtml(state.p1.name)} deadline</div>
-        <div class="timeline-cell">${escapeHtml(state.p2.name)} deadline</div>
-        <div class="timeline-cell">${escapeHtml(state.p1.name)}</div>
-        <div class="timeline-cell">${escapeHtml(state.p2.name)}</div>
-      </div>
-    `;
-    for (let i = 0; i < totalToShow; i++) {
-      const dl1 = getPlayerDeadline(i, p1tz);
-      const dl2 = getPlayerDeadline(i, p2tz);
-      const isNext1 = i === p1idx;
-      const isNext2 = i === p2idx;
-      const isNext = isNext1 || isNext2;
-
-      const cellState = (completedSet, playerIdx, isNextForPlayer) => {
-        if (completedSet.has(i)) return { cls: 'done', txt: 'Done' };
-        if (i < playerIdx) return { cls: 'missed', txt: 'Missed' };
-        if (isNextForPlayer) return { cls: 'pending', txt: 'Pending' };
-        return { cls: 'upcoming', txt: 'Upcoming' };
-      };
-
-      const c1 = cellState(completedSet1, p1idx, isNext1);
-      const c2 = cellState(completedSet2, p2idx, isNext2);
-
-      const fmtTZ = (d, tz) => d.toLocaleString('en-US', {
-        timeZone: tz, month: 'short', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', hour12: false
-      });
-
-      html += `
-        <div class="timeline-row ${isNext ? 'next' : ''} timeline-5col">
-          <div class="timeline-cell idx">${i + 1}</div>
-          <div class="timeline-cell" style="font-size:11px">${fmtTZ(dl1, p1tz)}</div>
-          <div class="timeline-cell" style="font-size:11px">${fmtTZ(dl2, p2tz)}</div>
-          <div class="timeline-cell"><span class="pill ${c1.cls}">${c1.txt}</span></div>
-          <div class="timeline-cell"><span class="pill ${c2.cls}">${c2.txt}</span></div>
-        </div>
-      `;
+    for (let i=0;i<total;i++) {
+      const dl1=getPlayerDeadline(i,p1tz), dl2=getPlayerDeadline(i,p2tz);
+      const n1=i===pi1, n2=i===pi2;
+      const cs=(set,pi,next)=>set.has(i)?{cls:'done',txt:'Done'}:i<pi?{cls:'missed',txt:'Missed'}:next?{cls:'pending',txt:'Pending'}:{cls:'upcoming',txt:'Upcoming'};
+      const s1=cs(c1,pi1,n1), s2=cs(c2,pi2,n2);
+      const ft=(d,tz)=>d.toLocaleString('en-US',{timeZone:tz,month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+      html+=`<div class="timeline-row ${(n1||n2)?'next':''} timeline-5col"><div class="timeline-cell idx">${i+1}</div><div class="timeline-cell" style="font-size:11px">${ft(dl1,p1tz)}</div><div class="timeline-cell" style="font-size:11px">${ft(dl2,p2tz)}</div><div class="timeline-cell"><span class="pill ${s1.cls}">${s1.txt}</span></div><div class="timeline-cell"><span class="pill ${s2.cls}">${s2.txt}</span></div></div>`;
     }
-    grid.innerHTML = html;
-    document.getElementById('timeline-toggle-btn').textContent =
-      timelineExpanded ? '↑ Show Less' : 'Show All Upcoming →';
+    grid.innerHTML=html;
+    document.getElementById('timeline-toggle-btn').textContent=timelineExpanded?'↑ Show Less':'Show All Upcoming →';
   }
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[c]));
-  }
-
-  function updateShareUrl() {
-    const url = encodeStateUrl();
-    const inp = document.getElementById('share-url');
-    if (inp) inp.value = url;
-    const fm = document.getElementById('footer-meta');
-    if (fm) {
-      const status = getRaceStatus();
-      fm.textContent = status.kind === 'live'
-        ? `Race live · ${state.p1.completed.length + state.p2.completed.length} videos logged`
-        : status.kind === 'winner'
-          ? `Race ended · ${(status.winner === 1 ? state.p1.name : state.p2.name)} wins`
-          : `Race voided`;
-    }
-  }
-
-  function syncTzSelects() {
-    [1, 2].forEach(n => {
-      const player = n === 1 ? state.p1 : state.p2;
-      const sel = document.getElementById(`p${n}-tz-select`);
-      if (sel && player.timezone) sel.value = player.timezone;
-    });
-  }
-
-  function render() {
-    renderHero();
-    renderBanner();
-    renderPlayer(1);
-    renderPlayer(2);
-    syncTzSelects();
-    renderPot();
-    renderTimeline();
-    updateShareUrl();
-  }
-
-  function toggleTimelineRange() {
-    timelineExpanded = !timelineExpanded;
-    renderTimeline();
-  }
+  function render() { renderHero(); renderBanner(); renderPlayer(1); renderPlayer(2); renderPot(); renderTimeline(); }
+  function toggleTimelineRange() { timelineExpanded=!timelineExpanded; renderTimeline(); }
 
   // ════════════════════════════════════════════════════
   //  ACTIONS
   // ════════════════════════════════════════════════════
-  function markDone(playerNum) {
-    const status = getRaceStatus();
-    if (status.kind !== 'live') return;
-    const player = playerNum === 1 ? state.p1 : state.p2;
-    const idx = getCurrentDeadlineIndexForPlayer(player);
-    const set = new Set(player.completed);
-    if (set.has(idx)) {
-      // Toggle off (allow undo of accidental click)
-      player.completed = player.completed.filter(i => i !== idx);
-      toast('Unmarked');
-    } else {
-      player.completed.push(idx);
-      player.completed.sort((a, b) => a - b);
-      toast(`✓ ${player.name} — Deadline #${idx + 1}`);
-    }
+  function markDone(n) {
+    if (getRaceStatus().kind!=='live') return;
+    const player=n===1?state.p1:state.p2;
+    const idx=getCurrentDeadlineIndexForPlayer(player), set=new Set(player.completed);
+    if (set.has(idx)) { player.completed=player.completed.filter(i=>i!==idx); toast('Unmarked'); }
+    else { player.completed.push(idx); player.completed.sort((a,b)=>a-b); toast(`✓ ${player.name} — Deadline #${idx+1}`); }
     saveState();
-    render();
   }
 
-  function renamePlayer(n, newName) {
-    newName = String(newName || '').trim().slice(0, 40);
-    if (!newName) newName = n === 1 ? 'Player 1' : 'Player 2';
-    if (n === 1) state.p1.name = newName;
-    else state.p2.name = newName;
+  function renamePlayer(n, name) {
+    name=String(name||'').trim().slice(0,40)||`Player ${n}`;
+    if(n===1)state.p1.name=name; else state.p2.name=name;
     saveState();
-    // Re-render bits that show name
-    renderHero();
-    renderBanner();
-    renderTimeline();
-    updateShareUrl();
   }
 
   function changeTimezone(n, tz) {
-    if (isRoundOneLocked()) { toast('Locked after Round 1'); return; }
-    if (n === 1) state.p1.timezone = tz;
-    else state.p2.timezone = tz;
-    saveState();
-    render();
-    toast(`Timezone updated`);
-  }
-
-  async function copyShareLink(btn) {
-    const url = encodeStateUrl();
-    try {
-      await navigator.clipboard.writeText(url);
-      const originalText = btn.textContent;
-      btn.textContent = '✓ Copied';
-      btn.classList.add('copied');
-      toast('Link copied to clipboard');
-      setTimeout(() => {
-        btn.textContent = originalText;
-        btn.classList.remove('copied');
-      }, 1800);
-    } catch(e) {
-      // Fallback
-      const inp = document.getElementById('share-url');
-      inp.select();
-      try { document.execCommand('copy'); toast('Link copied'); }
-      catch(_) { toast('Could not copy — select & copy manually'); }
-    }
+    if(isRoundOneLocked()){toast('Locked after Round 1');return;}
+    if(n===1)state.p1.timezone=tz; else state.p2.timezone=tz;
+    saveState(); toast('Timezone updated');
   }
 
   function exportJSON() {
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `bet-race-${state.startDate}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const exp={...state,p1:{...state.p1,completed:[...state.p1.completed]},p2:{...state.p2,completed:[...state.p2.completed]}};
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(exp,null,2)],{type:'application/json'}));
+    a.download=`bet-race-${state.startDate}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     toast('Exported JSON');
   }
 
   function importJSON(ev) {
-    const file = ev.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    const file=ev.target.files[0]; if(!file)return;
+    const r=new FileReader();
+    r.onload=e=>{
       try {
-        const parsed = JSON.parse(e.target.result);
-        if (!validateState(parsed)) throw new Error('invalid');
-        state = parsed;
-        saveState();
-        render();
-        toast('Race imported');
-      } catch(err) {
-        toast('Invalid file');
-      }
+        const p=JSON.parse(e.target.result);
+        if(!p||!p.startDate||!p.p1||!p.p2)throw 0;
+        p.p1.completed=(p.p1.completed||[]).map(Number).sort((a,b)=>a-b);
+        p.p2.completed=(p.p2.completed||[]).map(Number).sort((a,b)=>a-b);
+        state=p; saveState(); toast('Race imported');
+      } catch { toast('Invalid file'); }
     };
-    reader.readAsText(file);
-    ev.target.value = '';
+    r.readAsText(file); ev.target.value='';
   }
 
   function confirmReset() {
-    showModal({
-      title: 'Reset the race?',
-      text: 'This wipes all logged videos and resets both runners to zero. The start date stays the same. This cannot be undone.',
-      confirmText: 'Yes, reset',
-      danger: true,
-      onConfirm: () => {
-        state.p1.completed = [];
-        state.p2.completed = [];
-        saveState();
-        render();
-        toast('Race reset');
-      }
+    showModal({ title:'Reset the race?', text:'This wipes all logged videos for both runners. Cannot be undone.', confirmText:'Yes, reset', danger:true,
+      onConfirm:()=>{ state.p1.completed=[]; state.p2.completed=[]; saveState(); toast('Race reset'); }
     });
   }
 
   // ════════════════════════════════════════════════════
   //  MODAL & TOAST
   // ════════════════════════════════════════════════════
-  function showModal({ title, text, confirmText = 'Confirm', danger = false, onConfirm }) {
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-text').textContent = text;
-    const btn = document.getElementById('modal-confirm');
-    btn.textContent = confirmText;
-    btn.classList.toggle('danger', !!danger);
-    btn.onclick = () => { closeModal(); if (onConfirm) onConfirm(); };
+  function showModal({title,text,confirmText='Confirm',danger=false,onConfirm}) {
+    document.getElementById('modal-title').textContent=title;
+    document.getElementById('modal-text').textContent=text;
+    const btn=document.getElementById('modal-confirm');
+    btn.textContent=confirmText; btn.classList.toggle('danger',!!danger);
+    btn.onclick=()=>{closeModal();if(onConfirm)onConfirm();};
     document.getElementById('modal-bg').classList.add('show');
   }
-  function closeModal() {
-    document.getElementById('modal-bg').classList.remove('show');
-  }
-  document.getElementById('modal-bg').addEventListener('click', (e) => {
-    if (e.target.id === 'modal-bg') closeModal();
-  });
+  function closeModal(){document.getElementById('modal-bg').classList.remove('show');}
+  document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target.id==='modal-bg')closeModal();});
 
-  let toastTimer = null;
-  function toast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+  let toastTimer=null;
+  function toast(msg){
+    const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
   }
 
   // ════════════════════════════════════════════════════
   //  EDITABLE NAMES
   // ════════════════════════════════════════════════════
-  document.querySelectorAll('.player-name[contenteditable]').forEach(el => {
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
-      if (e.key === 'Escape') {
-        const n = parseInt(el.dataset.player);
-        el.textContent = n === 1 ? state.p1.name : state.p2.name;
-        el.blur();
-      }
+  document.querySelectorAll('.player-name[contenteditable]').forEach(el=>{
+    el.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){e.preventDefault();el.blur();}
+      if(e.key==='Escape'){el.textContent=parseInt(el.dataset.player)===1?state.p1.name:state.p2.name;el.blur();}
     });
-    el.addEventListener('blur', () => {
-      const n = parseInt(el.dataset.player);
-      renamePlayer(n, el.textContent);
-    });
-    el.addEventListener('paste', (e) => {
-      // Prevent rich-text paste
-      e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData('text');
-      document.execCommand('insertText', false, text);
-    });
+    el.addEventListener('blur',()=>renamePlayer(parseInt(el.dataset.player),el.textContent));
+    el.addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text'));});
   });
 
   // ════════════════════════════════════════════════════
   //  NAV SCROLL & REVEAL
   // ════════════════════════════════════════════════════
-  const nav = document.getElementById('main-nav');
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 40);
-  });
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.1 });
-  reveals.forEach(el => observer.observe(el));
-  // Hero reveals on load
-  document.querySelectorAll('.hero .reveal').forEach((el, i) => {
-    setTimeout(() => el.classList.add('visible'), 200 + i * 110);
-  });
+  window.addEventListener('scroll',()=>document.getElementById('main-nav').classList.toggle('scrolled',window.scrollY>40));
+  const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+  document.querySelectorAll('.hero .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),200+i*110));
 
   // ════════════════════════════════════════════════════
   //  BOOT
   // ════════════════════════════════════════════════════
-  render();
+  render();           // render with defaults while Firebase connects
+  startFirebaseSync(); // attach listener — will re-render with real data
   setInterval(renderCountdown, 1000);
-  // Re-render the whole UI every minute to catch deadline crossings
-  setInterval(() => {
-    const before = JSON.stringify({
-      idx: getCurrentDeadlineIndex(),
-      status: getRaceStatus()
-    });
-    render();
-  }, 60000);
+  setInterval(()=>render(), 60000); // catch deadline crossings
   </script>
 </body>
 </html>
