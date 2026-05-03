@@ -541,6 +541,59 @@
     .player-action {
       margin-top: auto;
     }
+    /* ─── TIMEZONE ─── */
+    .player-tz-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .tz-select {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--black);
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 6px 10px;
+      cursor: pointer;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: auto;
+    }
+    .tz-select:hover:not(:disabled) { border-color: var(--black); }
+    .tz-select:focus { border-color: var(--black); }
+    .tz-select:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .tz-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      min-height: 14px;
+    }
+    .player-name.locked {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .player-name.locked:hover,
+    .player-name.locked:focus {
+      background: transparent;
+      outline: none;
+      box-shadow: none;
+    }
+    .player-tz-wrap.locked .tz-label::after {
+      content: ' · 🔒 locked';
+      opacity: 0.5;
+    }
+    .timeline-5col {
+      grid-template-columns: 36px 1fr 1fr 90px 90px !important;
+    }
     .mark-btn {
       width: 100%;
       background: var(--black);
@@ -1244,12 +1297,29 @@
           <div class="section-tag reveal">Live Scoreboard</div>
           <h2 class="reveal reveal-delay-1">Two<br />Creators.</h2>
         </div>
-        <p class="reveal reveal-delay-2">Click a name to rename. Hit "Mark Done" before the deadline closes — once the clock hits zero on a missed video, that runner is eliminated and the pot is awarded.</p>
+        <p class="reveal reveal-delay-2">Click a name to rename and set your timezone — each player's deadline is <strong>midnight in their local timezone</strong>. Name &amp; timezone lock permanently after Round 1 (the 5th).</p>
       </div>
       <div class="scoreboard reveal reveal-delay-2">
         <div class="player" id="player-1">
           <div class="player-tag">Player 01</div>
-          <div class="player-name" contenteditable="true" data-player="1" id="p1-name">imhem</div>
+          <div class="player-name" contenteditable="true" data-player="1" id="p1-name" title="Click to rename">imhem</div>
+          <div class="player-tz-wrap" id="p1-tz-wrap">
+            <select class="tz-select" id="p1-tz-select" onchange="changeTimezone(1, this.value)">
+
+              <option value="Australia/Melbourne">🇦🇺 Melbourne (AEST/AEDT)</option>
+              <option value="Asia/Bangkok">🇹🇭 Bangkok (ICT)</option>
+              <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+              <option value="Asia/Singapore">🇸🇬 Singapore (SGT)</option>
+              <option value="Asia/Kolkata">🇮🇳 Mumbai (IST)</option>
+              <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+              <option value="Europe/Paris">🇫🇷 Paris (CET/CEST)</option>
+              <option value="America/New_York">🇺🇸 New York (ET)</option>
+              <option value="America/Chicago">🇺🇸 Chicago (CT)</option>
+              <option value="America/Los_Angeles">🇺🇸 Los Angeles (PT)</option>
+              <option value="UTC">🌐 UTC</option>
+            </select>
+            <div class="tz-label" id="p1-tz-label">—</div>
+          </div>
           <div class="player-status">
             <div class="status-dot"></div>
             <div class="player-status-text" id="p1-status">Alive</div>
@@ -1268,7 +1338,24 @@
 
         <div class="player" id="player-2">
           <div class="player-tag">Player 02</div>
-          <div class="player-name" contenteditable="true" data-player="2" id="p2-name">Friend</div>
+          <div class="player-name" contenteditable="true" data-player="2" id="p2-name" title="Click to rename">Friend</div>
+          <div class="player-tz-wrap" id="p2-tz-wrap">
+            <select class="tz-select" id="p2-tz-select" onchange="changeTimezone(2, this.value)">
+
+              <option value="Australia/Melbourne">🇦🇺 Melbourne (AEST/AEDT)</option>
+              <option value="Asia/Bangkok">🇹🇭 Bangkok (ICT)</option>
+              <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+              <option value="Asia/Singapore">🇸🇬 Singapore (SGT)</option>
+              <option value="Asia/Kolkata">🇮🇳 Mumbai (IST)</option>
+              <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+              <option value="Europe/Paris">🇫🇷 Paris (CET/CEST)</option>
+              <option value="America/New_York">🇺🇸 New York (ET)</option>
+              <option value="America/Chicago">🇺🇸 Chicago (CT)</option>
+              <option value="America/Los_Angeles">🇺🇸 Los Angeles (PT)</option>
+              <option value="UTC">🌐 UTC</option>
+            </select>
+            <div class="tz-label" id="p2-tz-label">—</div>
+          </div>
           <div class="player-status">
             <div class="status-dot"></div>
             <div class="player-status-text" id="p2-status">Alive</div>
@@ -1438,8 +1525,8 @@
     startDate: '2026-05-03',
     cadenceDays: 2,
     monthlyDeposit: 100,
-    p1: { name: 'imhem', completed: [] },
-    p2: { name: 'poe', completed: [] }
+    p1: { name: 'imhem', completed: [], timezone: 'Australia/Melbourne' },
+    p2: { name: 'poe', completed: [], timezone: 'Asia/Bangkok' }
   };
 
   let state = loadState();
@@ -1469,9 +1556,13 @@
   }
 
   function validateState(s) {
-    return s && s.startDate && typeof s.cadenceDays === 'number'
-      && s.p1 && Array.isArray(s.p1.completed)
-      && s.p2 && Array.isArray(s.p2.completed);
+    if (!s || !s.startDate || typeof s.cadenceDays !== 'number') return false;
+    if (!s.p1 || !Array.isArray(s.p1.completed)) return false;
+    if (!s.p2 || !Array.isArray(s.p2.completed)) return false;
+    // Migrate old state that lacks timezone
+    if (!s.p1.timezone) s.p1.timezone = 'Australia/Melbourne';
+    if (!s.p2.timezone) s.p2.timezone = 'Asia/Bangkok';
+    return true;
   }
 
   function saveState() {
@@ -1489,7 +1580,7 @@
   }
 
   // ════════════════════════════════════════════════════
-  //  DATE / DEADLINE LOGIC
+  //  DATE / DEADLINE LOGIC  (per-player timezone-aware)
   // ════════════════════════════════════════════════════
   function parseLocalDate(dateStr) {
     // 'YYYY-MM-DD' → local midnight
@@ -1497,8 +1588,36 @@
     return new Date(y, m - 1, d);
   }
 
+  // Convert a local wall-clock time in a given timezone to a UTC Date object
+  function localToUTC(year, month, day, hour, minute, second, timezone) {
+    // Iterative approach: start with UTC estimate, adjust using Intl
+    let estimate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    });
+    for (let i = 0; i < 3; i++) {
+      const parts = {};
+      fmt.formatToParts(estimate).forEach(p => { if (p.type !== 'literal') parts[p.type] = parseInt(p.value); });
+      const lh = parts.hour === 24 ? 0 : parts.hour;
+      const desired = Date.UTC(year, month - 1, day, hour, minute, second);
+      const actual  = Date.UTC(parts.year, parts.month - 1, parts.day, lh, parts.minute, parts.second);
+      estimate = new Date(estimate.getTime() + (desired - actual));
+    }
+    return estimate;
+  }
+
+  // Get deadline for a player (23:59:59 in their timezone) at round idx
+  function getPlayerDeadline(idx, timezone) {
+    const base = parseLocalDate(state.startDate);
+    const d = new Date(base);
+    d.setDate(d.getDate() + (idx + 1) * state.cadenceDays);
+    return localToUTC(d.getFullYear(), d.getMonth() + 1, d.getDate(), 23, 59, 59, timezone);
+  }
+
+  // Legacy: get deadline using the viewer's local time (used for hero countdown fallback)
   function getDeadline(idx) {
-    // Deadline N (0-indexed) is at end-of-day on startDate + (N+1)*cadenceDays
     const base = parseLocalDate(state.startDate);
     const dl = new Date(base);
     dl.setDate(dl.getDate() + (idx + 1) * state.cadenceDays);
@@ -1506,19 +1625,35 @@
     return dl;
   }
 
-  function getCurrentDeadlineIndex() {
-    // The next deadline that hasn't passed yet
+  // Current deadline index for a specific player based on their timezone
+  function getCurrentDeadlineIndexForPlayer(player) {
+    const tz = player.timezone || 'UTC';
     const now = new Date();
     let i = 0;
-    while (getDeadline(i).getTime() < now.getTime()) i++;
+    while (getPlayerDeadline(i, tz).getTime() < now.getTime()) i++;
     return i;
   }
 
+  // Shared "current index" = earliest across both players (for UI/countdown purposes)
+  function getCurrentDeadlineIndex() {
+    return Math.min(
+      getCurrentDeadlineIndexForPlayer(state.p1),
+      getCurrentDeadlineIndexForPlayer(state.p2)
+    );
+  }
+
+  // Returns true once Round 1 (the 5th) deadline has passed for either player
+  function isRoundOneLocked() {
+    const p1dl = getPlayerDeadline(0, state.p1.timezone || 'Australia/Melbourne');
+    const p2dl = getPlayerDeadline(0, state.p2.timezone || 'Asia/Bangkok');
+    return Date.now() > Math.min(p1dl.getTime(), p2dl.getTime());
+  }
+
   function getMissedFor(player) {
-    const now = new Date();
     const completed = new Set(player.completed);
     const missed = [];
-    for (let i = 0; i < getCurrentDeadlineIndex(); i++) {
+    const currentIdx = getCurrentDeadlineIndexForPlayer(player);
+    for (let i = 0; i < currentIdx; i++) {
       if (!completed.has(i)) missed.push(i);
     }
     return missed;
@@ -1666,8 +1801,8 @@
       statusEl.textContent = 'Alive';
     }
 
-    // Mark button
-    const dlIdx = getCurrentDeadlineIndex();
+    // Mark button — use per-player deadline index
+    const dlIdx = getCurrentDeadlineIndexForPlayer(player);
     const completedSet = new Set(player.completed);
     if (status.kind !== 'live') {
       btn.textContent = 'Race Over';
@@ -1681,6 +1816,40 @@
       btn.textContent = `Mark Deadline #${dlIdx + 1}`;
       btn.classList.remove('done');
       btn.disabled = false;
+    }
+
+    // Timezone display
+    const tzEl = document.getElementById(`p${n}-tz-label`);
+    if (tzEl) {
+      const tz = player.timezone || 'UTC';
+      const now = new Date();
+      const localTime = now.toLocaleTimeString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false });
+      const dl = getPlayerDeadline(dlIdx, tz);
+      const dlLocal = dl.toLocaleString('en-US', { timeZone: tz, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+      tzEl.textContent = `${localTime} local · next deadline ${dlLocal}`;
+    }
+
+    // Lock name + timezone after round 1
+    const locked = isRoundOneLocked();
+    const nameEl2 = document.getElementById(`p${n}-name`);
+    const tzSel = document.getElementById(`p${n}-tz-select`);
+    const tzWrap = document.getElementById(`p${n}-tz-wrap`);
+    if (locked) {
+      if (nameEl2) {
+        nameEl2.contentEditable = 'false';
+        nameEl2.classList.add('locked');
+        nameEl2.title = 'Locked after Round 1';
+      }
+      if (tzSel) tzSel.disabled = true;
+      if (tzWrap) tzWrap.classList.add('locked');
+    } else {
+      if (nameEl2) {
+        nameEl2.contentEditable = 'true';
+        nameEl2.classList.remove('locked');
+        nameEl2.title = 'Click to rename';
+      }
+      if (tzSel) tzSel.disabled = false;
+      if (tzWrap) tzWrap.classList.remove('locked');
     }
   }
 
@@ -1726,33 +1895,47 @@
     // Determine range
     const totalToShow = timelineExpanded ? Math.max(currentIdx + 30, 30) : Math.max(currentIdx + 5, 12);
 
+    const p1tz = state.p1.timezone || 'Australia/Melbourne';
+    const p2tz = state.p2.timezone || 'Asia/Bangkok';
+    const p1idx = getCurrentDeadlineIndexForPlayer(state.p1);
+    const p2idx = getCurrentDeadlineIndexForPlayer(state.p2);
+
     let html = `
-      <div class="timeline-row head">
+      <div class="timeline-row head timeline-5col">
         <div class="timeline-cell idx">#</div>
-        <div class="timeline-cell">Deadline</div>
+        <div class="timeline-cell">${escapeHtml(state.p1.name)} deadline</div>
+        <div class="timeline-cell">${escapeHtml(state.p2.name)} deadline</div>
         <div class="timeline-cell">${escapeHtml(state.p1.name)}</div>
         <div class="timeline-cell">${escapeHtml(state.p2.name)}</div>
       </div>
     `;
     for (let i = 0; i < totalToShow; i++) {
-      const dl = getDeadline(i);
-      const isPast = dl.getTime() < Date.now();
-      const isNext = i === currentIdx;
+      const dl1 = getPlayerDeadline(i, p1tz);
+      const dl2 = getPlayerDeadline(i, p2tz);
+      const isNext1 = i === p1idx;
+      const isNext2 = i === p2idx;
+      const isNext = isNext1 || isNext2;
 
-      const cellState = (player, completedSet) => {
+      const cellState = (completedSet, playerIdx, isNextForPlayer) => {
         if (completedSet.has(i)) return { cls: 'done', txt: 'Done' };
-        if (isPast) return { cls: 'missed', txt: 'Missed' };
-        if (isNext) return { cls: 'pending', txt: 'Pending' };
+        if (i < playerIdx) return { cls: 'missed', txt: 'Missed' };
+        if (isNextForPlayer) return { cls: 'pending', txt: 'Pending' };
         return { cls: 'upcoming', txt: 'Upcoming' };
       };
 
-      const c1 = cellState(state.p1, completedSet1);
-      const c2 = cellState(state.p2, completedSet2);
+      const c1 = cellState(completedSet1, p1idx, isNext1);
+      const c2 = cellState(completedSet2, p2idx, isNext2);
+
+      const fmtTZ = (d, tz) => d.toLocaleString('en-US', {
+        timeZone: tz, month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      });
 
       html += `
-        <div class="timeline-row ${isNext ? 'next' : ''}">
+        <div class="timeline-row ${isNext ? 'next' : ''} timeline-5col">
           <div class="timeline-cell idx">${i + 1}</div>
-          <div class="timeline-cell">${fmtDateTime(dl)}</div>
+          <div class="timeline-cell" style="font-size:11px">${fmtTZ(dl1, p1tz)}</div>
+          <div class="timeline-cell" style="font-size:11px">${fmtTZ(dl2, p2tz)}</div>
           <div class="timeline-cell"><span class="pill ${c1.cls}">${c1.txt}</span></div>
           <div class="timeline-cell"><span class="pill ${c2.cls}">${c2.txt}</span></div>
         </div>
@@ -1784,11 +1967,20 @@
     }
   }
 
+  function syncTzSelects() {
+    [1, 2].forEach(n => {
+      const player = n === 1 ? state.p1 : state.p2;
+      const sel = document.getElementById(`p${n}-tz-select`);
+      if (sel && player.timezone) sel.value = player.timezone;
+    });
+  }
+
   function render() {
     renderHero();
     renderBanner();
     renderPlayer(1);
     renderPlayer(2);
+    syncTzSelects();
     renderPot();
     renderTimeline();
     updateShareUrl();
@@ -1806,7 +1998,7 @@
     const status = getRaceStatus();
     if (status.kind !== 'live') return;
     const player = playerNum === 1 ? state.p1 : state.p2;
-    const idx = getCurrentDeadlineIndex();
+    const idx = getCurrentDeadlineIndexForPlayer(player);
     const set = new Set(player.completed);
     if (set.has(idx)) {
       // Toggle off (allow undo of accidental click)
@@ -1832,6 +2024,15 @@
     renderBanner();
     renderTimeline();
     updateShareUrl();
+  }
+
+  function changeTimezone(n, tz) {
+    if (isRoundOneLocked()) { toast('Locked after Round 1'); return; }
+    if (n === 1) state.p1.timezone = tz;
+    else state.p2.timezone = tz;
+    saveState();
+    render();
+    toast(`Timezone updated`);
   }
 
   async function copyShareLink(btn) {
