@@ -1131,6 +1131,78 @@
       border-color: var(--ko);
     }
 
+    /* ─── SYNC BANNER ─── */
+    .sync-banner {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      background: var(--black);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 32px;
+      transform: translateY(-100%);
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+      flex-wrap: wrap;
+    }
+    .sync-banner.show {
+      transform: translateY(0);
+    }
+    .sync-banner-text {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: oklch(70% 0 0);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sync-banner-text::before {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #facc15;
+      box-shadow: 0 0 8px #facc15;
+      flex-shrink: 0;
+    }
+    .sync-banner-text strong {
+      color: var(--white);
+    }
+    .sync-banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sync-copy-btn {
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--white);
+      color: var(--black);
+      border: none;
+      padding: 8px 18px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .sync-copy-btn:hover { background: oklch(80% 0 0); }
+    .sync-copy-btn.copied { background: #22c55e; color: var(--white); }
+    .sync-dismiss-btn {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: none;
+      border: none;
+      color: oklch(55% 0 0);
+      cursor: pointer;
+      padding: 4px 8px;
+      transition: color 0.2s;
+    }
+    .sync-dismiss-btn:hover { color: var(--white); }
+
     /* ─── TOAST ─── */
     .toast {
       position: fixed;
@@ -1215,6 +1287,17 @@
 
   <!-- ─── STATUS BANNER ─── -->
   <div id="banner" class="banner"></div>
+
+  <!-- ─── SYNC BANNER ─── -->
+  <div class="sync-banner" id="sync-banner">
+    <div class="sync-banner-text">
+      <strong>Race updated</strong> — share the link so the other person sees this change
+    </div>
+    <div class="sync-banner-actions">
+      <button class="sync-copy-btn" id="sync-copy-btn" onclick="syncCopyLink(this)">Copy & Share Link</button>
+      <button class="sync-dismiss-btn" onclick="dismissSyncBanner()">Dismiss</button>
+    </div>
+  </div>
 
   <!-- ─── HERO ─── -->
   <section class="hero" style="padding: 0;">
@@ -1571,6 +1654,41 @@
     const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
     history.replaceState(null, '', '#s=' + encoded);
     updateShareUrl();
+    showSyncBanner();
+  }
+
+  // ─── SYNC BANNER
+  let syncBannerTimer = null;
+  function showSyncBanner() {
+    const banner = document.getElementById('sync-banner');
+    if (!banner) return;
+    banner.classList.add('show');
+    clearTimeout(syncBannerTimer);
+    // Auto-dismiss after 12 seconds
+    syncBannerTimer = setTimeout(() => banner.classList.remove('show'), 12000);
+  }
+  function dismissSyncBanner() {
+    const banner = document.getElementById('sync-banner');
+    if (banner) banner.classList.remove('show');
+    clearTimeout(syncBannerTimer);
+  }
+  async function syncCopyLink(btn) {
+    const url = encodeStateUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      btn.textContent = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy & Share Link';
+        btn.classList.remove('copied');
+        dismissSyncBanner();
+      }, 2000);
+    } catch(e) {
+      // Fallback: select the share input
+      const inp = document.getElementById('share-url');
+      if (inp) { inp.select(); try { document.execCommand('copy'); } catch(_) {} }
+      toast('Copy failed — use the Share section below');
+    }
   }
 
   function encodeStateUrl() {
