@@ -871,14 +871,27 @@
   // ════════════════════════════════════════════════════
   //  ACTIONS
   // ════════════════════════════════════════════════════
-  function markDone(n) {
-    if (getRaceStatus().kind!=='live') return;
-    const player=n===1?state.p1:state.p2;
-    const idx=getCurrentDeadlineIndexForPlayer(player), set=new Set(player.completed);
-    if (set.has(idx)) { player.completed=player.completed.filter(i=>i!==idx); toast('Unmarked'); }
-    else { player.completed.push(idx); player.completed.sort((a,b)=>a-b); toast(`✓ ${player.name} — Deadline #${idx+1}`); }
-    saveState();
+function markDone(n) {
+  if (getRaceStatus().kind!=='live') return;
+  
+  // Ensure we're working with the correct player's data
+  const player = n === 1 ? state.p1 : state.p2;
+  const idx = getCurrentDeadlineIndexForPlayer(player);
+  const set = new Set(player.completed);
+  
+  if (set.has(idx)) {
+    // Remove the deadline
+    player.completed = player.completed.filter(i => i !== idx);
+    toast('Unmarked');
+  } else {
+    // Add the deadline
+    player.completed.push(idx);
+    player.completed.sort((a, b) => a - b);
+    toast(`✓ ${player.name} — Deadline #${idx+1}`);
   }
+  
+  saveState();
+}
 
   function renamePlayer(n, name) {
     name=String(name||'').trim().slice(0,40)||`Player ${n}`;
