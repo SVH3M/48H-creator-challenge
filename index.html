@@ -610,23 +610,29 @@
   //  completed arrays stored as { "0": true, "3": true }
   //  so Firebase doesn't mess with sparse array indexing
   // ════════════════════════════════════════════════════
-  function completedToObj(arr) {
-    const obj = {};
-    (arr || []).forEach(i => { obj[String(i)] = true; });
-    return obj;
-  }
   function objToCompleted(val) {
     if (!val) return [];
-    if (Array.isArray(val)) return val.map(Number).sort((a, b) => a - b);
-    return Object.keys(val).map(Number).sort((a, b) => a - b);
+    if (Array.isArray(val)) {
+      // Firebase converts {"0":true} to [true] — handle both formats:
+      // [true, true] = old corrupted format (index = position where truthy)
+      // [0, 1, 3]   = new correct format (values ARE the deadline indices)
+      return val
+        .map((v, i) => typeof v === 'boolean' ? (v ? i : -1) : Number(v))
+        .filter(n => n >= 0 && !isNaN(n))
+        .sort((a, b) => a - b);
+    }
+    return Object.keys(val).filter(k => val[k]).map(Number).sort((a, b) => a - b);
   }
   function toFirebase(s) {
+    // Store completed as a plain array of deadline index numbers e.g. [0, 1, 3].
+    // Avoids the Firebase bug where {"0": true} gets silently converted to [true],
+    // making Number(true) = 1 instead of the intended index 0.
     return {
       startDate:      s.startDate,
       cadenceDays:    s.cadenceDays,
       monthlyDeposit: s.monthlyDeposit,
-      p1: { name: s.p1.name, timezone: s.p1.timezone, completed: completedToObj(s.p1.completed) },
-      p2: { name: s.p2.name, timezone: s.p2.timezone, completed: completedToObj(s.p2.completed) }
+      p1: { name: s.p1.name, timezone: s.p1.timezone, completed: s.p1.completed.length ? [...s.p1.completed] : null },
+      p2: { name: s.p2.name, timezone: s.p2.timezone, completed: s.p2.completed.length ? [...s.p2.completed] : null }
     };
   }
   function fromFirebase(data) {
@@ -871,27 +877,14 @@
   // ════════════════════════════════════════════════════
   //  ACTIONS
   // ════════════════════════════════════════════════════
-function markDone(n) {
-  if (getRaceStatus().kind!=='live') return;
-  
-  // Ensure we're working with the correct player's data
-  const player = n === 1 ? state.p1 : state.p2;
-  const idx = getCurrentDeadlineIndexForPlayer(player);
-  const set = new Set(player.completed);
-  
-  if (set.has(idx)) {
-    // Remove the deadline
-    player.completed = player.completed.filter(i => i !== idx);
-    toast('Unmarked');
-  } else {
-    // Add the deadline
-    player.completed.push(idx);
-    player.completed.sort((a, b) => a - b);
-    toast(`✓ ${player.name} — Deadline #${idx+1}`);
+  function markDone(n) {
+    if (getRaceStatus().kind!=='live') return;
+    const player=n===1?state.p1:state.p2;
+    const idx=getCurrentDeadlineIndexForPlayer(player), set=new Set(player.completed);
+    if (set.has(idx)) { player.completed=player.completed.filter(i=>i!==idx); toast('Unmarked'); }
+    else { player.completed.push(idx); player.completed.sort((a,b)=>a-b); toast(`✓ ${player.name} — Deadline #${idx+1}`); }
+    saveState();
   }
-  
-  saveState();
-}
 
   function renamePlayer(n, name) {
     name=String(name||'').trim().slice(0,40)||`Player ${n}`;
