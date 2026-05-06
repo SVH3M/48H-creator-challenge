@@ -77,15 +77,30 @@
     .hero-right { position: relative; background: var(--black); display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .chart-bg { position: absolute; inset: 0; opacity: 0.06; overflow: hidden; }
     .chart-bg svg { width: 100%; height: 100%; }
-    .hero-card { position: relative; z-index: 2; background: oklch(15% 0 0); border: 1px solid oklch(30% 0 0); border-radius: 4px; padding: 36px; width: 380px; animation: float 4s ease-in-out infinite; }
-    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    /* ─── FLASHCARD STACK ─── */
+    .flashcard-wrapper { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    .flashcard-stack { position: relative; width: 340px; height: 230px; cursor: pointer; user-select: none; }
+    .cd-card {
+      position: absolute; inset: 0;
+      background: oklch(15% 0 0); border: 1px solid oklch(30% 0 0); border-radius: 8px;
+      padding: 26px 30px;
+      will-change: transform, opacity, box-shadow;
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity  0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                  box-shadow 0.55s ease;
+      pointer-events: none;
+    }
+    .cd-card[data-front="true"] { pointer-events: auto; }
+    .cd-dots { display: flex; gap: 10px; }
+    .cd-dot { width: 7px; height: 7px; border-radius: 50%; background: oklch(32% 0 0); border: none; padding: 0; cursor: pointer; transition: background 0.3s, transform 0.3s; }
+    .cd-dot.active { background: var(--white); transform: scale(1.35); }
     .card-label { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: oklch(55% 0 0); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
     .card-label::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 12px #22c55e; animation: pulse 1.6s ease-in-out infinite; }
     @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
     .card-title { font-family: var(--display); font-size: 18px; font-weight: 700; text-transform: uppercase; color: oklch(70% 0 0); letter-spacing: 0.08em; margin-bottom: 4px; }
-    .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0 24px; }
-    .cd-cell { background: oklch(20% 0 0); border-radius: 3px; padding: 14px 6px; text-align: center; }
-    .cd-val { font-family: var(--display); font-size: 36px; font-weight: 900; color: var(--white); line-height: 1; font-variant-numeric: tabular-nums; }
+    .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0 16px; }
+    .cd-cell { background: oklch(20% 0 0); border-radius: 3px; padding: 10px 5px; text-align: center; }
+    .cd-val { font-family: var(--display); font-size: 30px; font-weight: 900; color: var(--white); line-height: 1; font-variant-numeric: tabular-nums; }
     .cd-label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: oklch(50% 0 0); margin-top: 6px; }
     .card-deadline { font-family: var(--mono); font-size: 11px; color: oklch(55% 0 0); letter-spacing: 0.04em; text-align: center; padding-top: 18px; border-top: 1px solid oklch(22% 0 0); }
     .card-deadline strong { color: var(--white); font-weight: 600; }
@@ -108,7 +123,7 @@
     .scoreboard-wrap { max-width: 1280px; margin: 0 auto; }
     .scoreboard-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 56px; gap: 40px; flex-wrap: wrap; }
     .scoreboard-header p { max-width: 460px; font-size: 16px; color: var(--mid); line-height: 1.7; text-wrap: pretty; }
-    .scoreboard { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: stretch; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+    .scoreboard { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; align-items: stretch; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
     .player { padding: 48px 40px; display: flex; flex-direction: column; gap: 28px; background: var(--white); transition: background 0.3s; position: relative; overflow: hidden; }
     .player.eliminated { background: oklch(96% 0 0); }
     .player.eliminated::after { content: 'KO'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg); font-family: var(--display); font-size: 240px; font-weight: 900; color: var(--ko); opacity: 0.07; pointer-events: none; letter-spacing: -0.02em; }
@@ -119,7 +134,7 @@
     .player.winner::after { content: '👑'; position: absolute; top: 28px; right: 32px; font-size: 36px; animation: bounce 1.6s ease-in-out infinite; }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
     .player-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mid); display: flex; align-items: center; gap: 8px; }
-    .player-name { font-family: var(--display); font-size: clamp(40px, 5vw, 64px); font-weight: 900; text-transform: uppercase; line-height: 0.95; letter-spacing: -0.01em; color: var(--black); cursor: text; outline: none; border-bottom: 2px solid transparent; padding-bottom: 4px; transition: border-color 0.2s; word-break: break-word; }
+    .player-name { font-family: var(--display); font-size: clamp(24px, 2.8vw, 38px); font-weight: 900; text-transform: uppercase; line-height: 0.95; letter-spacing: -0.01em; color: var(--black); cursor: text; outline: none; border-bottom: 2px solid transparent; padding-bottom: 4px; transition: border-color 0.2s; word-break: break-word; }
     .player-name:hover, .player-name:focus { border-bottom-color: var(--border); }
     .player-status { display: inline-flex; align-items: center; gap: 10px; width: fit-content; }
     .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px rgba(34,197,94,0.5); animation: pulse 1.6s ease-in-out infinite; }
@@ -140,7 +155,7 @@
     .player-name.locked { cursor: not-allowed; opacity: 0.7; }
     .player-name.locked:hover, .player-name.locked:focus { background: transparent; outline: none; }
     .player-tz-wrap.locked .tz-label::after { content: ' · 🔒 locked'; opacity: 0.5; }
-    .timeline-5col { grid-template-columns: 36px 1fr 1fr 90px 90px !important; }
+    .timeline-7col { grid-template-columns: 44px 148px 148px 148px 84px 84px 84px !important; }
     .mark-btn { width: 100%; background: var(--black); color: var(--white); font-family: var(--display); font-size: 15px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 18px; border: 1px solid var(--black); border-radius: 2px; cursor: pointer; transition: background 0.2s, color 0.2s, transform 0.15s; }
     .mark-btn:hover:not(:disabled) { background: var(--white); color: var(--black); transform: translateY(-1px); }
     .mark-btn:disabled { opacity: 0.35; cursor: not-allowed; background: oklch(85% 0 0); color: var(--mid); border-color: oklch(85% 0 0); }
@@ -173,8 +188,8 @@
     .swatch-missed { background: var(--ko); border-color: var(--ko); }
     .swatch-pending { background: var(--white); }
     .swatch-upcoming { background: oklch(92% 0 0); border-style: dashed; }
-    .timeline-grid { border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
-    .timeline-row { display: grid; grid-template-columns: 60px 1fr 1fr 1fr; align-items: center; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    .timeline-grid { border: 1px solid var(--border); border-radius: 3px; overflow-x: auto; }
+    .timeline-row { display: grid; align-items: center; border-bottom: 1px solid var(--border); transition: background 0.15s; min-width: 860px; }
     .timeline-row:last-child { border-bottom: none; }
     .timeline-row.head { background: oklch(96% 0 0); font-family: var(--display); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid); }
     .timeline-row.next { background: oklch(98% 0 0); box-shadow: inset 3px 0 0 var(--black); }
@@ -256,7 +271,7 @@
       section { padding: 80px 24px; } .scoreboard { grid-template-columns: 1fr; } .vs-divider { padding: 16px; font-size: 24px; }
       .pot-inner { grid-template-columns: 1fr; gap: 40px; } .rules-wrap { grid-template-columns: 1fr; gap: 40px; }
       footer { flex-direction: column; align-items: flex-start; padding: 32px 24px; }
-      h1 { font-size: clamp(56px, 12vw, 92px); } .hero-card { width: 100%; max-width: 380px; padding: 28px; } .cd-val { font-size: 28px; }
+      h1 { font-size: clamp(56px, 12vw, 92px); } .flashcard-stack { width: 100%; max-width: 340px; } .cd-val { font-size: 22px; }
     }
     @media (max-width: 540px) {
       .timeline-cell { font-size: 10px; padding: 10px 6px; } .pill { font-size: 9px; padding: 4px 6px; }
@@ -347,16 +362,9 @@
           <polyline points="0,560 60,520 120,540 180,440 240,460 300,360 360,320 420,340 480,220 540,180 600,120" stroke="white" stroke-width="2" fill="none"/>
         </svg>
       </div>
-      <div class="hero-card">
-        <div class="card-label">Live · Next Deadline</div>
-        <div class="card-title" id="hc-which">Deadline #1</div>
-        <div class="countdown-grid">
-          <div class="cd-cell"><div class="cd-val" id="cd-d">--</div><div class="cd-label">Days</div></div>
-          <div class="cd-cell"><div class="cd-val" id="cd-h">--</div><div class="cd-label">Hours</div></div>
-          <div class="cd-cell"><div class="cd-val" id="cd-m">--</div><div class="cd-label">Min</div></div>
-          <div class="cd-cell"><div class="cd-val" id="cd-s">--</div><div class="cd-label">Sec</div></div>
-        </div>
-        <div class="card-deadline">Due <strong id="hc-due">—</strong></div>
+      <div class="flashcard-wrapper" id="flashcard-wrapper">
+        <div class="flashcard-stack" id="flashcard-stack"></div>
+        <div class="cd-dots" id="cd-dots"></div>
       </div>
       <div class="hero-tag-bottom" id="race-id">race · imhem · est. 2026</div>
     </div>
@@ -382,7 +390,7 @@
       <div class="scoreboard-header">
         <div>
           <div class="section-tag reveal">Live Scoreboard</div>
-          <h2 class="reveal reveal-delay-1">Two<br />Creators.</h2>
+          <h2 class="reveal reveal-delay-1">Three<br />Creators.</h2>
         </div>
         <p class="reveal reveal-delay-2">Click a name to rename and set your timezone — each player's deadline is <strong>midnight in their local timezone</strong>. Name &amp; timezone lock permanently after Round 1.</p>
       </div>
@@ -446,6 +454,37 @@
           </div>
           <div class="player-action"><button class="mark-btn" id="p2-btn" onclick="markDone(2)">Mark Deadline #1</button></div>
         </div>
+
+        <div class="vs-divider">VS</div>
+
+        <!-- Player 3 -->
+        <div class="player" id="player-3">
+          <div class="player-tag">Player 03</div>
+          <div class="player-name" contenteditable="true" data-player="3" id="p3-name" title="Click to rename">Player 3</div>
+          <div class="player-tz-wrap" id="p3-tz-wrap">
+            <select class="tz-select" id="p3-tz-select" onchange="changeTimezone(3, this.value)">
+              <option value="Australia/Melbourne">🇦🇺 Melbourne (AEST/AEDT)</option>
+              <option value="Asia/Bangkok">🇹🇭 Bangkok (ICT)</option>
+              <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+              <option value="Asia/Singapore">🇸🇬 Singapore (SGT)</option>
+              <option value="Asia/Kolkata">🇮🇳 Mumbai (IST)</option>
+              <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+              <option value="Europe/Paris">🇫🇷 Paris (CET/CEST)</option>
+              <option value="America/New_York">🇺🇸 New York (ET)</option>
+              <option value="America/Chicago">🇺🇸 Chicago (CT)</option>
+              <option value="America/Los_Angeles">🇺🇸 Los Angeles (PT)</option>
+              <option value="UTC">🌐 UTC</option>
+            </select>
+            <div class="tz-label" id="p3-tz-label">—</div>
+          </div>
+          <div class="player-status"><div class="status-dot"></div><div class="player-status-text" id="p3-status">Alive</div></div>
+          <div class="player-stats">
+            <div class="stat-block"><div class="stat-num" id="p3-done">0</div><div class="stat-label">Videos Done</div></div>
+            <div class="stat-block"><div class="stat-num" id="p3-streak">0</div><div class="stat-label">Streak</div></div>
+            <div class="stat-block"><div class="stat-num" id="p3-missed">0</div><div class="stat-label">Missed</div></div>
+          </div>
+          <div class="player-action"><button class="mark-btn" id="p3-btn" onclick="markDone(3)">Mark Deadline #1</button></div>
+        </div>
       </div>
     </div>
   </section>
@@ -460,14 +499,14 @@
         <div class="pot-stack reveal reveal-delay-3">
           <div class="pot-row"><span>Months in race</span><strong id="pot-months">0</strong></div>
           <div class="pot-row"><span>Per-player deposit</span><strong>$100 / mo</strong></div>
-          <div class="pot-row"><span>Combined / month</span><strong>$200 / mo</strong></div>
+          <div class="pot-row"><span>Combined / month</span><strong>$300 / mo</strong></div>
           <div class="pot-row"><span>Next deposit due</span><strong id="pot-next">—</strong></div>
         </div>
       </div>
       <div class="pot-display reveal reveal-delay-2">
         <div class="pot-display-label">Current Pot</div>
         <div class="pot-display-amount">$<span id="pot-total">0</span></div>
-        <div class="pot-display-sub" id="pot-sub">— months × $200/mo combined deposit</div>
+        <div class="pot-display-sub" id="pot-sub">— months × $300/mo combined deposit</div>
       </div>
     </div>
   </section>
@@ -599,8 +638,9 @@
     startDate:      '2026-05-03',
     cadenceDays:    2,
     monthlyDeposit: 100,
-    p1: { name: 'imhem', completed: [], timezone: 'Australia/Melbourne' },
-    p2: { name: 'poe',   completed: [], timezone: 'Asia/Bangkok' }
+    p1: { name: 'imhem',    completed: [], timezone: 'Australia/Melbourne' },
+    p2: { name: 'poe',      completed: [], timezone: 'Asia/Bangkok' },
+    p3: { name: 'Player 3', completed: [], timezone: 'Australia/Melbourne' }
   };
 
   let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -632,7 +672,8 @@
       cadenceDays:    s.cadenceDays,
       monthlyDeposit: s.monthlyDeposit,
       p1: { name: s.p1.name, timezone: s.p1.timezone, completed: s.p1.completed.length ? [...s.p1.completed] : null },
-      p2: { name: s.p2.name, timezone: s.p2.timezone, completed: s.p2.completed.length ? [...s.p2.completed] : null }
+      p2: { name: s.p2.name, timezone: s.p2.timezone, completed: s.p2.completed.length ? [...s.p2.completed] : null },
+      p3: { name: s.p3.name, timezone: s.p3.timezone, completed: s.p3.completed.length ? [...s.p3.completed] : null }
     };
   }
   function fromFirebase(data) {
@@ -643,6 +684,7 @@
     s.monthlyDeposit = data.monthlyDeposit ?? s.monthlyDeposit;
     if (data.p1) { s.p1.name = data.p1.name || s.p1.name; s.p1.timezone = data.p1.timezone || s.p1.timezone; s.p1.completed = objToCompleted(data.p1.completed); }
     if (data.p2) { s.p2.name = data.p2.name || s.p2.name; s.p2.timezone = data.p2.timezone || s.p2.timezone; s.p2.completed = objToCompleted(data.p2.completed); }
+    if (data.p3) { s.p3.name = data.p3.name || s.p3.name; s.p3.timezone = data.p3.timezone || s.p3.timezone; s.p3.completed = objToCompleted(data.p3.completed); }
     return s;
   }
 
@@ -690,6 +732,7 @@
         const n = parseInt(active.dataset.player);
         if (n === 1) incoming.p1.name = state.p1.name;
         if (n === 2) incoming.p2.name = state.p2.name;
+        if (n === 3) incoming.p3.name = state.p3.name;
       }
 
       state = incoming;
@@ -728,8 +771,8 @@
     while (getPlayerDeadline(i, tz).getTime() < now.getTime()) i++;
     return i;
   }
-  function getCurrentDeadlineIndex() { return Math.min(getCurrentDeadlineIndexForPlayer(state.p1), getCurrentDeadlineIndexForPlayer(state.p2)); }
-  function isRoundOneLocked() { return Date.now() > Math.min(getPlayerDeadline(0, state.p1.timezone).getTime(), getPlayerDeadline(0, state.p2.timezone).getTime()); }
+  function getCurrentDeadlineIndex() { return Math.min(getCurrentDeadlineIndexForPlayer(state.p1), getCurrentDeadlineIndexForPlayer(state.p2), getCurrentDeadlineIndexForPlayer(state.p3)); }
+  function isRoundOneLocked() { return Date.now() > Math.min(getPlayerDeadline(0, state.p1.timezone).getTime(), getPlayerDeadline(0, state.p2.timezone).getTime(), getPlayerDeadline(0, state.p3.timezone).getTime()); }
   function getMissedFor(player) {
     const done = new Set(player.completed); const cur = getCurrentDeadlineIndexForPlayer(player); const out = [];
     for (let i = 0; i < cur; i++) if (!done.has(i)) out.push(i);
@@ -741,20 +784,28 @@
     return streak;
   }
   function getRaceStatus() {
-    const m1=getMissedFor(state.p1), m2=getMissedFor(state.p2);
-    const a1=m1.length===0, a2=m2.length===0;
-    if (a1&&a2) return {kind:'live'};
-    if (a1&&!a2) return {kind:'winner',winner:1,eliminatedAt:m2[0]};
-    if (!a1&&a2) return {kind:'winner',winner:2,eliminatedAt:m1[0]};
-    if (m1[0]===m2[0]) return {kind:'draw',deadline:m1[0]};
-    return m1[0]<m2[0] ? {kind:'winner',winner:2,eliminatedAt:m1[0]} : {kind:'winner',winner:1,eliminatedAt:m2[0]};
+    const missed    = [getMissedFor(state.p1), getMissedFor(state.p2), getMissedFor(state.p3)];
+    const firstMiss = missed.map(m => m.length > 0 ? m[0] : Infinity);
+    const aliveCount = firstMiss.filter(f => f === Infinity).length;
+    if (aliveCount >= 2) return { kind: 'live' };
+    if (aliveCount === 1) {
+      const winner = firstMiss.indexOf(Infinity) + 1;
+      return { kind: 'winner', winner, eliminatedAt: Math.min(...firstMiss.filter(f => f !== Infinity)) };
+    }
+    const maxMiss  = Math.max(...firstMiss);
+    const survivors = firstMiss.map((f,i) => f===maxMiss ? i+1 : null).filter(Boolean);
+    if (survivors.length === 1) {
+      const losers = firstMiss.filter(f => f !== maxMiss);
+      return { kind: 'winner', winner: survivors[0], eliminatedAt: losers.length ? Math.min(...losers) : maxMiss };
+    }
+    return { kind: 'draw', deadline: maxMiss };
   }
   function getMonthsInRace() {
     const s=parseLocalDate(state.startDate), n=new Date();
     if (n<s) return 0;
     return (n.getFullYear()-s.getFullYear())*12+(n.getMonth()-s.getMonth())+1;
   }
-  function getPotTotal() { return getMonthsInRace()*state.monthlyDeposit*2; }
+  function getPotTotal() { return getMonthsInRace()*state.monthlyDeposit*3; }
   function getNextDepositDate() { const s=parseLocalDate(state.startDate),n=new Date(); return new Date(n.getFullYear(),n.getMonth()+1,s.getDate()); }
 
   // ════════════════════════════════════════════════════
@@ -767,24 +818,133 @@
 
   function renderHero() {
     document.getElementById('meta-start').textContent = fmtDate(parseLocalDate(state.startDate));
-    const idx = getCurrentDeadlineIndex(), dl = getDeadline(idx);
-    document.getElementById('hc-which').textContent = `Deadline #${idx+1}`;
-    document.getElementById('hc-due').textContent   = fmtDT(dl);
-    document.getElementById('race-id').textContent  = `race · ${state.p1.name.toLowerCase()} vs ${state.p2.name.toLowerCase()}`;
+    const p3name = (state.p3||{name:'p3'}).name.toLowerCase();
+    document.getElementById('race-id').textContent = `race · ${state.p1.name.toLowerCase()} vs ${state.p2.name.toLowerCase()} vs ${p3name}`;
+  }
+
+  // ─── FLASHCARD STATE
+  let _cdEntries   = [];   // [{tz, players}]
+  let _cdTzKey     = '';   // cache key — rebuild cards only when tzs change
+  let _cdActive    = 0;    // index of front card
+  let _cdAutoTimer = null;
+
+  function _buildCards() {
+    const players = [state.p1, state.p2, state.p3].filter(Boolean);
+    const tzMap = new Map();
+    players.forEach(p => {
+      const tz = p.timezone || 'UTC';
+      if (!tzMap.has(tz)) tzMap.set(tz, []);
+      tzMap.get(tz).push(p);
+    });
+    _cdEntries = [...tzMap.entries()].map(([tz, ps]) => ({ tz, players: ps }));
+    const newKey = _cdEntries.map(e => e.tz + ':' + e.players.map(p=>p.name).join(',')).join('|');
+    if (newKey === _cdTzKey) return; // no structural change
+    _cdTzKey = newKey;
+    _cdActive = 0;
+
+    const stack = document.getElementById('flashcard-stack');
+    const dots  = document.getElementById('cd-dots');
+    if (!stack || !dots) return;
+
+    // Build card HTML (one per unique timezone)
+    stack.innerHTML = _cdEntries.map((_, i) => `
+      <div class="cd-card" data-idx="${i}" data-front="${i===0}">
+        <div class="card-label" id="cdlbl${i}">—</div>
+        <div class="card-title" id="cdttl${i}">—</div>
+        <div class="countdown-grid">
+          <div class="cd-cell"><div class="cd-val" id="cdd${i}">--</div><div class="cd-label">Days</div></div>
+          <div class="cd-cell"><div class="cd-val" id="cdh${i}">--</div><div class="cd-label">Hours</div></div>
+          <div class="cd-cell"><div class="cd-val" id="cdm${i}">--</div><div class="cd-label">Min</div></div>
+          <div class="cd-cell"><div class="cd-val" id="cds${i}">--</div><div class="cd-label">Sec</div></div>
+        </div>
+        <div class="card-deadline" id="cddue${i}">—</div>
+      </div>`).join('');
+
+    // Dots
+    dots.innerHTML = _cdEntries.map((_, i) =>
+      `<button class="cd-dot${i===0?' active':''}" data-idx="${i}" onclick="cdGoTo(${i})"></button>`
+    ).join('');
+
+    // Click stack to advance
+    stack.onclick = () => cdGoTo((_cdActive + 1) % _cdEntries.length);
+
+    // Auto-rotate every 5s if more than one card
+    clearInterval(_cdAutoTimer);
+    if (_cdEntries.length > 1) {
+      _cdAutoTimer = setInterval(() => cdGoTo((_cdActive + 1) % _cdEntries.length), 5000);
+    }
+
+    _applyPositions();
+  }
+
+  function cdGoTo(idx) {
+    _cdActive = idx;
+    clearInterval(_cdAutoTimer);
+    if (_cdEntries.length > 1) {
+      _cdAutoTimer = setInterval(() => cdGoTo((_cdActive + 1) % _cdEntries.length), 5000);
+    }
+    _applyPositions();
+  }
+
+  function _applyPositions() {
+    const n = _cdEntries.length;
+    const STYLE = [
+      { y: 0,  scale: 1,    opacity: 1,    z: 10, shadow: '0 20px 48px rgba(0,0,0,0.55)' },
+      { y: 13, scale: 0.95, opacity: 0.55, z: 5,  shadow: 'none' },
+      { y: 23, scale: 0.90, opacity: 0.28, z: 1,  shadow: 'none' },
+    ];
+    document.querySelectorAll('.cd-card').forEach(card => {
+      const i   = parseInt(card.dataset.idx);
+      const pos = ((i - _cdActive) % n + n) % n;
+      const s   = pos < 3 ? STYLE[pos] : { y: 30, scale: 0.86, opacity: 0, z: 0, shadow: 'none' };
+      card.style.transform  = `translateY(${s.y}px) scale(${s.scale})`;
+      card.style.opacity    = s.opacity;
+      card.style.zIndex     = s.z;
+      card.style.boxShadow  = s.shadow;
+      card.dataset.front    = pos === 0;
+    });
+    document.querySelectorAll('.cd-dot').forEach(dot => {
+      dot.classList.toggle('active', parseInt(dot.dataset.idx) === _cdActive);
+    });
   }
 
   function renderCountdown() {
-    if (getRaceStatus().kind !== 'live') { ['cd-d','cd-h','cd-m','cd-s'].forEach(id => document.getElementById(id).textContent='00'); return; }
-    const diff = getDeadline(getCurrentDeadlineIndex()).getTime() - Date.now();
-    if (diff <= 0) { render(); return; }
-    document.getElementById('cd-d').textContent = pad(Math.floor(diff/86400000));
-    document.getElementById('cd-h').textContent = pad(Math.floor((diff%86400000)/3600000));
-    document.getElementById('cd-m').textContent = pad(Math.floor((diff%3600000)/60000));
-    document.getElementById('cd-s').textContent = pad(Math.floor((diff%60000)/1000));
+    _buildCards(); // no-op if tzs haven't changed
+    const status = getRaceStatus();
+    const now    = new Date();
+    let needRerender = false;
+
+    _cdEntries.forEach(({ tz, players }, i) => {
+      const dlIdx = Math.min(...players.map(p => getCurrentDeadlineIndexForPlayer(p)));
+      const dl    = getPlayerDeadline(dlIdx, tz);
+      const diff  = dl.getTime() - now.getTime();
+      if (diff <= 0 && status.kind === 'live') needRerender = true;
+
+      let d='00', h='00', m='00', s='00';
+      if (status.kind === 'live' && diff > 0) {
+        d = pad(Math.floor(diff / 86400000));
+        h = pad(Math.floor((diff % 86400000) / 3600000));
+        m = pad(Math.floor((diff % 3600000)  / 60000));
+        s = pad(Math.floor((diff % 60000)    / 1000));
+      }
+
+      const tzShort = now.toLocaleTimeString('en-US', { timeZone: tz, timeZoneName: 'short' }).split(' ').pop();
+      const dlLocal = dl.toLocaleString('en-US', { timeZone: tz, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+      const names   = players.map(p => p.name).join(' & ');
+
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      const setHTML = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+      set(`cdlbl${i}`, `${names} · ${tzShort}`);
+      set(`cdttl${i}`, `Deadline #${dlIdx + 1}`);
+      setHTML(`cddue${i}`, `Due <strong>${dlLocal}</strong>`);
+      set(`cdd${i}`, d); set(`cdh${i}`, h); set(`cdm${i}`, m); set(`cds${i}`, s);
+    });
+
+    if (needRerender) render();
   }
 
   function renderPlayer(n) {
-    const player = n===1 ? state.p1 : state.p2;
+    const player = n===1 ? state.p1 : n===2 ? state.p2 : state.p3;
     const status = getRaceStatus();
     const playerEl = document.getElementById(`player-${n}`);
     const nameEl   = document.getElementById(`p${n}-name`);
@@ -829,9 +989,10 @@
     const banner=document.getElementById('banner'), status=getRaceStatus();
     banner.classList.remove('show','winner','draw');
     if (status.kind==='winner') {
-      const w=(status.winner===1?state.p1.name:state.p2.name).toUpperCase();
-      const l=(status.winner===1?state.p2.name:state.p1.name).toUpperCase();
-      banner.innerHTML=`<div class="banner-tag">Race · Final</div><div class="banner-headline">👑 ${w} Wins · ${l} KO'd Deadline #${status.eliminatedAt+1}</div>`;
+      const ps=[state.p1,state.p2,state.p3];
+      const w=ps[status.winner-1].name.toUpperCase();
+      const losers=ps.filter((_,i)=>i+1!==status.winner).map(p=>p.name.toUpperCase()).join(' & ');
+      banner.innerHTML=`<div class="banner-tag">Race · Final</div><div class="banner-headline">👑 ${w} Wins · ${losers} KO'd Deadline #${status.eliminatedAt+1}</div>`;
       banner.classList.add('show','winner');
     } else if (status.kind==='draw') {
       banner.innerHTML=`<div class="banner-tag">Race · Voided</div><div class="banner-headline">Double Miss · Deadline #${status.deadline+1} · Pot Returns</div>`;
@@ -843,7 +1004,7 @@
     const months=getMonthsInRace(), pot=getPotTotal();
     document.getElementById('pot-months').textContent = months;
     document.getElementById('pot-total').textContent  = fmtMoney(pot);
-    document.getElementById('pot-sub').textContent    = `${months} month${months===1?'':'s'} × $${state.monthlyDeposit*2}/mo combined deposit`;
+    document.getElementById('pot-sub').textContent    = `${months} month${months===1?'':'s'} × $${state.monthlyDeposit*3}/mo combined deposit`;
     document.getElementById('pot-next').textContent   = fmtDate(getNextDepositDate());
   }
 
@@ -852,26 +1013,28 @@
   let timelineExpanded = false;
   function renderTimeline() {
     const grid=document.getElementById('timeline-grid');
-    const cur=getCurrentDeadlineIndex(), c1=new Set(state.p1.completed), c2=new Set(state.p2.completed);
+    const cur=getCurrentDeadlineIndex();
+    const c1=new Set(state.p1.completed), c2=new Set(state.p2.completed), c3=new Set(state.p3.completed);
     const total=timelineExpanded?Math.max(cur+30,30):Math.max(cur+5,12);
-    const p1tz=state.p1.timezone||'Australia/Melbourne', p2tz=state.p2.timezone||'Asia/Bangkok';
-    const pi1=getCurrentDeadlineIndexForPlayer(state.p1), pi2=getCurrentDeadlineIndexForPlayer(state.p2);
+    const p1tz=state.p1.timezone||'Australia/Melbourne', p2tz=state.p2.timezone||'Asia/Bangkok', p3tz=state.p3.timezone||'Australia/Melbourne';
+    const pi1=getCurrentDeadlineIndexForPlayer(state.p1), pi2=getCurrentDeadlineIndexForPlayer(state.p2), pi3=getCurrentDeadlineIndexForPlayer(state.p3);
+    const n1s=escapeHtml(state.p1.name), n2s=escapeHtml(state.p2.name), n3s=escapeHtml(state.p3.name);
 
-    let html=`<div class="timeline-row head timeline-5col"><div class="timeline-cell idx">#</div><div class="timeline-cell">${escapeHtml(state.p1.name)} deadline</div><div class="timeline-cell">${escapeHtml(state.p2.name)} deadline</div><div class="timeline-cell">${escapeHtml(state.p1.name)}</div><div class="timeline-cell">${escapeHtml(state.p2.name)}</div></div>`;
+    let html=`<div class="timeline-row head timeline-7col"><div class="timeline-cell idx">#</div><div class="timeline-cell">${n1s} due</div><div class="timeline-cell">${n2s} due</div><div class="timeline-cell">${n3s} due</div><div class="timeline-cell">${n1s}</div><div class="timeline-cell">${n2s}</div><div class="timeline-cell">${n3s}</div></div>`;
 
     for (let i=0;i<total;i++) {
-      const dl1=getPlayerDeadline(i,p1tz), dl2=getPlayerDeadline(i,p2tz);
-      const n1=i===pi1, n2=i===pi2;
+      const dl1=getPlayerDeadline(i,p1tz), dl2=getPlayerDeadline(i,p2tz), dl3=getPlayerDeadline(i,p3tz);
+      const isN1=i===pi1, isN2=i===pi2, isN3=i===pi3;
       const cs=(set,pi,next)=>set.has(i)?{cls:'done',txt:'Done'}:i<pi?{cls:'missed',txt:'Missed'}:next?{cls:'pending',txt:'Pending'}:{cls:'upcoming',txt:'Upcoming'};
-      const s1=cs(c1,pi1,n1), s2=cs(c2,pi2,n2);
+      const s1=cs(c1,pi1,isN1), s2=cs(c2,pi2,isN2), s3=cs(c3,pi3,isN3);
       const ft=(d,tz)=>d.toLocaleString('en-US',{timeZone:tz,month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
-      html+=`<div class="timeline-row ${(n1||n2)?'next':''} timeline-5col"><div class="timeline-cell idx">${i+1}</div><div class="timeline-cell" style="font-size:11px">${ft(dl1,p1tz)}</div><div class="timeline-cell" style="font-size:11px">${ft(dl2,p2tz)}</div><div class="timeline-cell"><span class="pill ${s1.cls}">${s1.txt}</span></div><div class="timeline-cell"><span class="pill ${s2.cls}">${s2.txt}</span></div></div>`;
+      html+=`<div class="timeline-row ${(isN1||isN2||isN3)?'next':''} timeline-7col"><div class="timeline-cell idx">${i+1}</div><div class="timeline-cell" style="font-size:10px">${ft(dl1,p1tz)}</div><div class="timeline-cell" style="font-size:10px">${ft(dl2,p2tz)}</div><div class="timeline-cell" style="font-size:10px">${ft(dl3,p3tz)}</div><div class="timeline-cell"><span class="pill ${s1.cls}">${s1.txt}</span></div><div class="timeline-cell"><span class="pill ${s2.cls}">${s2.txt}</span></div><div class="timeline-cell"><span class="pill ${s3.cls}">${s3.txt}</span></div></div>`;
     }
     grid.innerHTML=html;
     document.getElementById('timeline-toggle-btn').textContent=timelineExpanded?'↑ Show Less':'Show All Upcoming →';
   }
 
-  function render() { renderHero(); renderBanner(); renderPlayer(1); renderPlayer(2); renderPot(); renderTimeline(); }
+  function render() { renderHero(); renderBanner(); renderPlayer(1); renderPlayer(2); renderPlayer(3); renderPot(); renderTimeline(); renderCountdown(); }
   function toggleTimelineRange() { timelineExpanded=!timelineExpanded; renderTimeline(); }
 
   // ════════════════════════════════════════════════════
@@ -879,7 +1042,7 @@
   // ════════════════════════════════════════════════════
   function markDone(n) {
     if (getRaceStatus().kind!=='live') return;
-    const player=n===1?state.p1:state.p2;
+    const player=n===1?state.p1:n===2?state.p2:state.p3;
     const idx=getCurrentDeadlineIndexForPlayer(player), set=new Set(player.completed);
     if (set.has(idx)) { player.completed=player.completed.filter(i=>i!==idx); toast('Unmarked'); }
     else { player.completed.push(idx); player.completed.sort((a,b)=>a-b); toast(`✓ ${player.name} — Deadline #${idx+1}`); }
@@ -888,18 +1051,18 @@
 
   function renamePlayer(n, name) {
     name=String(name||'').trim().slice(0,40)||`Player ${n}`;
-    if(n===1)state.p1.name=name; else state.p2.name=name;
+    if(n===1)state.p1.name=name; else if(n===2)state.p2.name=name; else state.p3.name=name;
     saveState();
   }
 
   function changeTimezone(n, tz) {
     if(isRoundOneLocked()){toast('Locked after Round 1');return;}
-    if(n===1)state.p1.timezone=tz; else state.p2.timezone=tz;
+    if(n===1)state.p1.timezone=tz; else if(n===2)state.p2.timezone=tz; else state.p3.timezone=tz;
     saveState(); toast('Timezone updated');
   }
 
   function exportJSON() {
-    const exp={...state,p1:{...state.p1,completed:[...state.p1.completed]},p2:{...state.p2,completed:[...state.p2.completed]}};
+    const exp={...state,p1:{...state.p1,completed:[...state.p1.completed]},p2:{...state.p2,completed:[...state.p2.completed]},p3:{...state.p3,completed:[...state.p3.completed]}};
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(exp,null,2)],{type:'application/json'}));
     a.download=`bet-race-${state.startDate}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     toast('Exported JSON');
@@ -914,6 +1077,8 @@
         if(!p||!p.startDate||!p.p1||!p.p2)throw 0;
         p.p1.completed=(p.p1.completed||[]).map(Number).sort((a,b)=>a-b);
         p.p2.completed=(p.p2.completed||[]).map(Number).sort((a,b)=>a-b);
+        if(!p.p3) p.p3=JSON.parse(JSON.stringify(DEFAULT_STATE.p3));
+        p.p3.completed=(p.p3.completed||[]).map(Number).sort((a,b)=>a-b);
         state=p; saveState(); toast('Race imported');
       } catch { toast('Invalid file'); }
     };
@@ -922,7 +1087,7 @@
 
   function confirmReset() {
     showModal({ title:'Reset the race?', text:'This wipes all logged videos for both runners. Cannot be undone.', confirmText:'Yes, reset', danger:true,
-      onConfirm:()=>{ state.p1.completed=[]; state.p2.completed=[]; saveState(); toast('Race reset'); }
+      onConfirm:()=>{ state.p1.completed=[]; state.p2.completed=[]; state.p3.completed=[]; saveState(); toast('Race reset'); }
     });
   }
 
@@ -952,7 +1117,7 @@
   document.querySelectorAll('.player-name[contenteditable]').forEach(el=>{
     el.addEventListener('keydown',e=>{
       if(e.key==='Enter'){e.preventDefault();el.blur();}
-      if(e.key==='Escape'){el.textContent=parseInt(el.dataset.player)===1?state.p1.name:state.p2.name;el.blur();}
+      if(e.key==='Escape'){const _n=parseInt(el.dataset.player);el.textContent=_n===1?state.p1.name:_n===2?state.p2.name:state.p3.name;el.blur();}
     });
     el.addEventListener('blur',()=>renamePlayer(parseInt(el.dataset.player),el.textContent));
     el.addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text'));});
