@@ -7,11 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
-
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
-
   <style>
     :root {
       --black: #0a0a0a;
@@ -27,7 +25,6 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body { background: var(--white); color: var(--black); font-family: var(--body); font-size: 16px; line-height: 1.6; overflow-x: hidden; }
-
     /* ─── SETUP OVERLAY ─── */
     .setup-overlay { position: fixed; inset: 0; background: var(--black); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 40px 24px; overflow-y: auto; }
     .setup-box { max-width: 640px; width: 100%; color: var(--white); }
@@ -41,7 +38,6 @@
     .setup-step-text strong { color: var(--white); font-weight: 600; }
     .setup-step-text code { font-family: var(--mono); font-size: 12px; background: oklch(18% 0 0); padding: 2px 7px; border-radius: 2px; color: #86efac; }
     .setup-note { font-family: var(--mono); font-size: 11px; color: oklch(45% 0 0); letter-spacing: 0.03em; line-height: 1.7; }
-
     /* ─── NAV ─── */
     nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; background: var(--white); border-bottom: 1px solid transparent; transition: border-color 0.3s, background 0.3s; }
     nav.scrolled { border-bottom-color: var(--border); background: oklch(97% 0 0 / 0.95); backdrop-filter: blur(12px); }
@@ -50,13 +46,11 @@
     .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
     .nav-links a { font-size: 13px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mid); text-decoration: none; transition: color 0.2s; cursor: pointer; }
     .nav-links a:hover { color: var(--black); }
-
     /* ─── CONNECTION INDICATOR ─── */
     .conn-indicator { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--mid); }
     .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: oklch(70% 0 0); transition: background 0.4s; flex-shrink: 0; }
     .conn-dot.live { background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.5); animation: pulse 1.6s ease-in-out infinite; }
     .conn-dot.offline { background: #ef4444; }
-
     /* ─── HERO ─── */
     .hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; padding-top: 80px; overflow: hidden; }
     .hero-left { display: flex; flex-direction: column; justify-content: center; padding: 80px 48px; }
@@ -72,7 +66,6 @@
     .btn-primary:hover { background: var(--white); color: var(--black); transform: translateY(-1px); }
     .btn-secondary { display: inline-flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--black); text-decoration: none; border-bottom: 2px solid var(--black); padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; background: none; border-left: none; border-right: none; border-top: none; cursor: pointer; }
     .btn-secondary:hover { color: var(--mid); border-color: var(--mid); }
-
     /* ─── HERO RIGHT ─── */
     .hero-right { position: relative; background: var(--black); display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .chart-bg { position: absolute; inset: 0; opacity: 0.06; overflow: hidden; }
@@ -105,20 +98,17 @@
     .card-deadline { font-family: var(--mono); font-size: 11px; color: oklch(55% 0 0); letter-spacing: 0.04em; text-align: center; padding-top: 18px; border-top: 1px solid oklch(22% 0 0); }
     .card-deadline strong { color: var(--white); font-weight: 600; }
     .hero-tag-bottom { position: absolute; bottom: 32px; left: 40px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(40% 0 0); }
-
     /* ─── MARQUEE ─── */
     .marquee-strip { background: var(--black); padding: 16px 0; overflow: hidden; white-space: nowrap; }
     .marquee-inner { display: inline-flex; gap: 0; animation: marquee 24s linear infinite; }
     .marquee-inner span { font-family: var(--display); font-size: 13px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: oklch(40% 0 0); padding: 0 32px; }
     .marquee-inner span.accent { color: oklch(55% 0 0); }
     @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
     /* ─── SECTION ─── */
     section { padding: 120px 48px; }
     .section-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--black); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
     .section-tag::before { content: ''; display: block; width: 20px; height: 2px; background: var(--black); }
     h2 { font-family: var(--display); font-size: clamp(48px, 6vw, 80px); font-weight: 900; text-transform: uppercase; line-height: 0.95; letter-spacing: -0.01em; color: var(--black); }
-
     /* ─── SCOREBOARD ─── */
     .scoreboard-wrap { max-width: 1280px; margin: 0 auto; }
     .scoreboard-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 56px; gap: 40px; flex-wrap: wrap; }
@@ -151,10 +141,10 @@
     .tz-select:hover:not(:disabled) { border-color: var(--black); }
     .tz-select:focus { border-color: var(--black); }
     .tz-select:disabled { opacity: 0.45; cursor: not-allowed; }
-    .tz-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.04em; min-height: 14px; }
     .player-name.locked { cursor: not-allowed; opacity: 0.7; }
     .player-name.locked:hover, .player-name.locked:focus { background: transparent; outline: none; }
     .player-tz-wrap.locked .tz-label::after { content: ' · 🔒 locked'; opacity: 0.5; }
+    .tz-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.04em; min-height: 14px; }
     .timeline-7col { grid-template-columns: 44px 148px 148px 148px 84px 84px 84px !important; }
     .mark-btn { width: 100%; background: var(--black); color: var(--white); font-family: var(--display); font-size: 15px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 18px; border: 1px solid var(--black); border-radius: 2px; cursor: pointer; transition: background 0.2s, color 0.2s, transform 0.15s; }
     .mark-btn:hover:not(:disabled) { background: var(--white); color: var(--black); transform: translateY(-1px); }
@@ -162,7 +152,6 @@
     .mark-btn.done { background: var(--white); color: var(--black); border-color: var(--black); }
     .mark-btn.done::before { content: '✓ '; font-weight: 900; }
     .vs-divider { display: flex; align-items: center; justify-content: center; background: var(--black); color: var(--white); font-family: var(--display); font-size: 32px; font-weight: 900; letter-spacing: 0.04em; padding: 0 24px; }
-
     /* ─── POT ─── */
     #pot { background: var(--black); color: var(--white); }
     .pot-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
@@ -175,7 +164,6 @@
     .pot-display-label { font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: oklch(50% 0 0); margin-bottom: 16px; }
     .pot-display-amount { font-family: var(--display); font-size: clamp(80px, 10vw, 140px); font-weight: 900; color: var(--white); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
     .pot-display-sub { font-family: var(--mono); font-size: 12px; color: oklch(50% 0 0); letter-spacing: 0.06em; margin-top: 20px; padding-top: 20px; border-top: 1px solid oklch(20% 0 0); }
-
     /* ─── TIMELINE ─── */
     #timeline-section { background: var(--white); }
     .timeline-wrap { max-width: 1200px; margin: 0 auto; }
@@ -202,7 +190,6 @@
     .pill.pending { background: var(--white); color: var(--black); border-color: var(--black); }
     .pill.upcoming { background: oklch(96% 0 0); color: var(--muted); border-style: dashed; }
     .timeline-toggle { text-align: center; margin-top: 28px; }
-
     /* ─── RULES ─── */
     .rules-wrap { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
     .rules-text h2 { margin-bottom: 28px; }
@@ -213,7 +200,6 @@
     .rule-num { font-family: var(--display); font-size: 36px; font-weight: 900; color: var(--black); line-height: 1; }
     .rule-text strong { display: block; font-family: var(--display); font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
     .rule-text span { font-size: 14px; color: var(--mid); line-height: 1.6; }
-
     /* ─── SHARE / MANAGE ─── */
     #share { background: oklch(96% 0 0); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
     .share-inner { max-width: 800px; margin: 0 auto; text-align: center; }
@@ -224,7 +210,6 @@
     .share-actions button { background: transparent; border: 1px solid var(--border); padding: 10px 18px; font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); border-radius: 2px; cursor: pointer; transition: all 0.2s; }
     .share-actions button:hover { border-color: var(--black); color: var(--black); }
     .share-actions button.danger:hover { border-color: var(--ko); color: var(--ko); }
-
     /* ─── BANNER ─── */
     .banner { padding: 32px 48px; text-align: center; font-family: var(--display); letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--border); display: none; }
     .banner.show { display: block; }
@@ -233,7 +218,6 @@
     .banner-tag { font-size: 11px; letter-spacing: 0.18em; color: var(--mid); margin-bottom: 8px; font-weight: 600; }
     .banner.winner .banner-tag { color: oklch(60% 0 0); }
     .banner-headline { font-size: clamp(28px, 4vw, 48px); font-weight: 900; line-height: 1; }
-
     /* ─── FOOTER ─── */
     footer { padding: 48px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 24px; }
     .footer-logo { font-family: var(--display); font-size: 18px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--black); }
@@ -242,7 +226,6 @@
     .footer-links { display: flex; gap: 24px; list-style: none; }
     .footer-links a { font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mid); text-decoration: none; transition: color 0.2s; cursor: pointer; }
     .footer-links a:hover { color: var(--black); }
-
     /* ─── MODAL ─── */
     .modal-bg { position: fixed; inset: 0; background: rgba(10,10,10,0.6); backdrop-filter: blur(6px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; }
     .modal-bg.show { display: flex; }
@@ -254,16 +237,13 @@
     .modal-actions .cancel { background: var(--white); color: var(--black); }
     .modal-actions .confirm { background: var(--black); color: var(--white); }
     .modal-actions .confirm.danger { background: var(--ko); border-color: var(--ko); }
-
     /* ─── TOAST ─── */
     .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--black); color: var(--white); padding: 14px 24px; border-radius: 2px; font-family: var(--display); font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0; transition: all 0.3s; z-index: 300; pointer-events: none; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
     /* ─── REVEAL ─── */
     .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
     .reveal-delay-1 { transition-delay: 0.1s; } .reveal-delay-2 { transition-delay: 0.2s; } .reveal-delay-3 { transition-delay: 0.3s; } .reveal-delay-4 { transition-delay: 0.4s; }
-
     /* ─── RESPONSIVE ─── */
     @media (max-width: 980px) {
       nav { padding: 16px 24px; } .nav-links { display: none; }
@@ -280,13 +260,11 @@
   </style>
 </head>
 <body>
-
   <!-- ─── SETUP OVERLAY ─── -->
   <div class="setup-overlay" id="setup-overlay" style="display:none">
     <div class="setup-box">
       <h2>Connect<br /><em>Firebase</em><br />First.</h2>
       <p>This tracker uses Firebase Realtime Database so both you and your friend see updates instantly — no link sharing needed. Free to set up, takes about 2 minutes.</p>
-
       <div class="setup-step">
         <div class="setup-num">01</div>
         <div class="setup-step-text">Go to <strong>console.firebase.google.com</strong> → Create a new project (any name). You can skip Google Analytics.</div>
@@ -303,11 +281,9 @@
         <div class="setup-num">04</div>
         <div class="setup-step-text">Open <code>index.html</code> in a text editor → find <code>FIREBASE_CONFIG</code> near the top of the <code>&lt;script&gt;</code> tag → paste your values in, replacing each <code>YOUR_...</code> placeholder → save and push to GitHub.</div>
       </div>
-
       <p class="setup-note">Both you and your friend just need to open the same GitHub Pages URL — no extra setup on their end. The scoreboard will sync automatically within a second of any change.</p>
     </div>
   </div>
-
   <!-- ─── NAV ─── -->
   <nav id="main-nav">
     <a class="nav-logo" href="#">imhem<span>.</span></a>
@@ -324,10 +300,8 @@
       </li>
     </ul>
   </nav>
-
   <!-- ─── STATUS BANNER ─── -->
   <div id="banner" class="banner"></div>
-
   <!-- ─── HERO ─── -->
   <section class="hero" style="padding:0">
     <div class="hero-left">
@@ -369,7 +343,6 @@
       <div class="hero-tag-bottom" id="race-id">race · imhem · est. 2026</div>
     </div>
   </section>
-
   <!-- ─── MARQUEE ─── -->
   <div class="marquee-strip">
     <div class="marquee-inner">
@@ -383,7 +356,6 @@
       <span>imhem · 2026</span><span class="accent">✦</span>
     </div>
   </div>
-
   <!-- ─── SCOREBOARD ─── -->
   <section id="scoreboard">
     <div class="scoreboard-wrap">
@@ -423,9 +395,7 @@
           </div>
           <div class="player-action"><button class="mark-btn" id="p1-btn" onclick="markDone(1)">Mark Deadline #1</button></div>
         </div>
-
         <div class="vs-divider">VS</div>
-
         <!-- Player 2 -->
         <div class="player" id="player-2">
           <div class="player-tag">Player 02</div>
@@ -454,9 +424,7 @@
           </div>
           <div class="player-action"><button class="mark-btn" id="p2-btn" onclick="markDone(2)">Mark Deadline #1</button></div>
         </div>
-
         <div class="vs-divider">VS</div>
-
         <!-- Player 3 -->
         <div class="player" id="player-3">
           <div class="player-tag">Player 03</div>
@@ -488,29 +456,28 @@
       </div>
     </div>
   </section>
-
   <!-- ─── POT ─── -->
   <section id="pot">
     <div class="pot-inner">
       <div>
         <div class="section-tag reveal">The Pot</div>
         <h2 class="reveal reveal-delay-1">Winner<br /><em>Takes</em> All.</h2>
-        <p class="pot-desc reveal reveal-delay-2">Both runners deposit $100 per month with the middleman. The pot grows every month the race continues. The day someone misses a deadline, the entire pot is awarded to the survivor.</p>
+        <p class="pot-desc reveal reveal-delay-2">Every active runner deposits $100 per month with the middleman. Once a runner is eliminated they stop contributing, so the pot only grows by what the survivors put in each month. The day someone misses a deadline, the entire pot is awarded to the survivor.</p>
         <div class="pot-stack reveal reveal-delay-3">
           <div class="pot-row"><span>Months in race</span><strong id="pot-months">0</strong></div>
           <div class="pot-row"><span>Per-player deposit</span><strong>$100 / mo</strong></div>
-          <div class="pot-row"><span>Combined / month</span><strong>$300 / mo</strong></div>
+          <div class="pot-row"><span>Active this month</span><strong id="pot-active">—</strong></div>
+          <div class="pot-row"><span>Combined this month</span><strong id="pot-combined">$300 / mo</strong></div>
           <div class="pot-row"><span>Next deposit due</span><strong id="pot-next">—</strong></div>
         </div>
       </div>
       <div class="pot-display reveal reveal-delay-2">
         <div class="pot-display-label">Current Pot</div>
         <div class="pot-display-amount">$<span id="pot-total">0</span></div>
-        <div class="pot-display-sub" id="pot-sub">— months × $300/mo combined deposit</div>
+        <div class="pot-display-sub" id="pot-sub">— active × $100/mo current combined deposit</div>
       </div>
     </div>
   </section>
-
   <!-- ─── TIMELINE ─── -->
   <section id="timeline-section">
     <div class="timeline-wrap">
@@ -533,7 +500,6 @@
       </div>
     </div>
   </section>
-
   <!-- ─── RULES ─── -->
   <section id="rules">
     <div class="rules-wrap">
@@ -545,14 +511,13 @@
       </div>
       <div class="rules-list reveal reveal-delay-3">
         <div class="rule"><div class="rule-num">01</div><div class="rule-text"><strong>One Video Per 48 Hours</strong><span>Each runner must publish at least one video by the end of every 48-hour window. Window 1 closes at end of day 2 from race start.</span></div></div>
-        <div class="rule"><div class="rule-num">02</div><div class="rule-text"><strong>$100 Monthly Stake</strong><span>Both runners deposit $100 to the middleman at the start of each month the race is active. No deposit, no race that month.</span></div></div>
+        <div class="rule"><div class="rule-num">02</div><div class="rule-text"><strong>$100 Monthly Stake</strong><span>Every active runner deposits $100 to the middleman at the start of each month the race is active. Eliminated runners no longer contribute.</span></div></div>
         <div class="rule"><div class="rule-num">03</div><div class="rule-text"><strong>First Miss = Eliminated</strong><span>A missed deadline ends the runner's race immediately. No make-ups, no make-good videos.</span></div></div>
         <div class="rule"><div class="rule-num">04</div><div class="rule-text"><strong>Winner Takes The Pot</strong><span>The middleman releases the entire accumulated deposit to the surviving runner upon elimination of the other.</span></div></div>
         <div class="rule"><div class="rule-num">05</div><div class="rule-text"><strong>Double Miss = Race Voided</strong><span>If both runners miss the same deadline, the race is voided and the middleman returns deposits proportionally.</span></div></div>
       </div>
     </div>
   </section>
-
   <!-- ─── MANAGE ─── -->
   <section id="share">
     <div class="share-inner">
@@ -567,7 +532,6 @@
       </div>
     </div>
   </section>
-
   <!-- ─── FOOTER ─── -->
   <footer>
     <div class="footer-logo">imhem<span>.</span> / the bet</div>
@@ -580,7 +544,6 @@
     </ul>
     <span class="footer-meta" id="footer-meta">© 2026 — firebase synced · imhem</span>
   </footer>
-
   <!-- ─── MODAL ─── -->
   <div class="modal-bg" id="modal-bg">
     <div class="modal">
@@ -592,10 +555,8 @@
       </div>
     </div>
   </div>
-
   <!-- ─── TOAST ─── -->
   <div class="toast" id="toast"></div>
-
   <script>
   // ════════════════════════════════════════════════════
   //  FIREBASE CONFIG
@@ -610,10 +571,8 @@
     messagingSenderId: "706361578324",
     appId:             "1:706361578324:web:91a92092bea577ced1eec1"
   };
-
   // Database path for this race (change if running multiple races in one DB)
   const RACE_PATH = 'race';
-
   // ════════════════════════════════════════════════════
   //  SETUP CHECK — show overlay if config not filled in
   // ════════════════════════════════════════════════════
@@ -621,7 +580,6 @@
   if (!isConfigured) {
     document.getElementById('setup-overlay').style.display = 'flex';
   }
-
   // ════════════════════════════════════════════════════
   //  FIREBASE INIT
   // ════════════════════════════════════════════════════
@@ -630,7 +588,6 @@
     firebase.initializeApp(FIREBASE_CONFIG);
     raceRef = firebase.database().ref(RACE_PATH);
   }
-
   // ════════════════════════════════════════════════════
   //  DEFAULT STATE
   // ════════════════════════════════════════════════════
@@ -642,9 +599,7 @@
     p2: { name: 'poe',      completed: [], timezone: 'Asia/Bangkok' },
     p3: { name: 'Player 3', completed: [], timezone: 'Australia/Melbourne' }
   };
-
   let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-
   // ════════════════════════════════════════════════════
   //  FIREBASE SERIALISATION
   //  completed arrays stored as { "0": true, "3": true }
@@ -687,7 +642,6 @@
     if (data.p3) { s.p3.name = data.p3.name || s.p3.name; s.p3.timezone = data.p3.timezone || s.p3.timezone; s.p3.completed = objToCompleted(data.p3.completed); }
     return s;
   }
-
   // ════════════════════════════════════════════════════
   //  SAVE — writes to Firebase; render() called by listener
   // ════════════════════════════════════════════════════
@@ -698,13 +652,11 @@
       toast('Sync failed — check console');
     });
   }
-
   // ════════════════════════════════════════════════════
   //  REAL-TIME LISTENER
   // ════════════════════════════════════════════════════
   function startFirebaseSync() {
     if (!raceRef) return;
-
     // Connection status dot in nav
     firebase.database().ref('.info/connected').on('value', snap => {
       const ok = !!snap.val();
@@ -713,19 +665,15 @@
       if (dot)   dot.className = 'conn-dot ' + (ok ? 'live' : 'offline');
       if (label) label.textContent = ok ? 'Live' : 'Offline';
     });
-
     // Main listener — fires on load + every time data changes in Firebase
     raceRef.on('value', snapshot => {
       const data = snapshot.val();
-
       if (data === null) {
         // First visit — initialise the database with defaults
         raceRef.set(toFirebase(DEFAULT_STATE));
         return;
       }
-
       const incoming = fromFirebase(data);
-
       // Don't clobber a name being actively typed
       const active = document.activeElement;
       if (active && active.classList.contains('player-name')) {
@@ -734,7 +682,6 @@
         if (n === 2) incoming.p2.name = state.p2.name;
         if (n === 3) incoming.p3.name = state.p3.name;
       }
-
       state = incoming;
       render();
     }, err => {
@@ -742,12 +689,10 @@
       toast('Firebase read failed');
     });
   }
-
   // ════════════════════════════════════════════════════
   //  DATE / DEADLINE LOGIC
   // ════════════════════════════════════════════════════
   function parseLocalDate(str) { const [y,m,d] = str.split('-').map(Number); return new Date(y, m-1, d); }
-
   function localToUTC(year, month, day, hour, min, sec, tz) {
     let est = new Date(Date.UTC(year, month-1, day, hour, min, sec));
     const fmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
@@ -758,7 +703,6 @@
     }
     return est;
   }
-
   function getPlayerDeadline(idx, tz) {
     const b = parseLocalDate(state.startDate); b.setDate(b.getDate() + (idx+1)*state.cadenceDays);
     return localToUTC(b.getFullYear(), b.getMonth()+1, b.getDate(), 23, 59, 59, tz);
@@ -805,9 +749,48 @@
     if (n<s) return 0;
     return (n.getFullYear()-s.getFullYear())*12+(n.getMonth()-s.getMonth())+1;
   }
-  function getPotTotal() { return getMonthsInRace()*state.monthlyDeposit*3; }
+  // ════════════════════════════════════════════════════
+  //  POT LOGIC — only ACTIVE runners contribute each month.
+  //  The pot accrues month by month: each month adds
+  //  (players still active when that month's deposit is due)
+  //  × the per-player monthly deposit. Once a runner misses a
+  //  deadline they are eliminated and stop contributing to the
+  //  pot in every month after their elimination.
+  // ════════════════════════════════════════════════════
+  // Date the m-th monthly deposit falls due (m = 0 is the first month).
+  function getMonthlyDepositDate(m) {
+    const s = parseLocalDate(state.startDate);
+    return new Date(s.getFullYear(), s.getMonth() + m, s.getDate());
+  }
+  // Moment a player leaves the race = their first missed deadline.
+  // Returns Infinity while the player is still active.
+  function getPlayerEliminationTime(player) {
+    const missed = getMissedFor(player);
+    if (!missed.length) return Infinity;
+    return getPlayerDeadline(missed[0], player.timezone || 'UTC').getTime();
+  }
+  // How many players are still active when month m's deposit is due.
+  function getActiveCountForMonth(m) {
+    const dueTime = getMonthlyDepositDate(m).getTime();
+    return [state.p1, state.p2, state.p3]
+      .filter(p => getPlayerEliminationTime(p) > dueTime)
+      .length;
+  }
+  // Total pot = sum over each elapsed month of active contributions.
+  function getPotTotal() {
+    const months = getMonthsInRace();
+    let total = 0;
+    for (let m = 0; m < months; m++) {
+      total += getActiveCountForMonth(m) * state.monthlyDeposit;
+    }
+    return total;
+  }
+  // Active contributors for the current (latest) month.
+  function getCurrentActiveCount() {
+    const months = getMonthsInRace();
+    return months > 0 ? getActiveCountForMonth(months - 1) : 0;
+  }
   function getNextDepositDate() { const s=parseLocalDate(state.startDate),n=new Date(); return new Date(n.getFullYear(),n.getMonth()+1,s.getDate()); }
-
   // ════════════════════════════════════════════════════
   //  RENDER
   // ════════════════════════════════════════════════════
@@ -815,19 +798,16 @@
   const fmtDT   = d => d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
   const fmtMoney = n => n.toLocaleString('en-US');
   const pad = n => String(n).padStart(2,'0');
-
   function renderHero() {
     document.getElementById('meta-start').textContent = fmtDate(parseLocalDate(state.startDate));
     const p3name = (state.p3||{name:'p3'}).name.toLowerCase();
     document.getElementById('race-id').textContent = `race · ${state.p1.name.toLowerCase()} vs ${state.p2.name.toLowerCase()} vs ${p3name}`;
   }
-
   // ─── FLASHCARD STATE
   let _cdEntries   = [];   // [{tz, players}]
   let _cdTzKey     = '';   // cache key — rebuild cards only when tzs change
   let _cdActive    = 0;    // index of front card
   let _cdAutoTimer = null;
-
   function _buildCards() {
     const players = [state.p1, state.p2, state.p3].filter(Boolean);
     const tzMap = new Map();
@@ -841,11 +821,9 @@
     if (newKey === _cdTzKey) return; // no structural change
     _cdTzKey = newKey;
     _cdActive = 0;
-
     const stack = document.getElementById('flashcard-stack');
     const dots  = document.getElementById('cd-dots');
     if (!stack || !dots) return;
-
     // Build card HTML (one per unique timezone)
     stack.innerHTML = _cdEntries.map((_, i) => `
       <div class="cd-card" data-idx="${i}" data-front="${i===0}">
@@ -859,24 +837,19 @@
         </div>
         <div class="card-deadline" id="cddue${i}">—</div>
       </div>`).join('');
-
     // Dots
     dots.innerHTML = _cdEntries.map((_, i) =>
       `<button class="cd-dot${i===0?' active':''}" data-idx="${i}" onclick="cdGoTo(${i})"></button>`
     ).join('');
-
     // Click stack to advance
     stack.onclick = () => cdGoTo((_cdActive + 1) % _cdEntries.length);
-
     // Auto-rotate every 5s if more than one card
     clearInterval(_cdAutoTimer);
     if (_cdEntries.length > 1) {
       _cdAutoTimer = setInterval(() => cdGoTo((_cdActive + 1) % _cdEntries.length), 5000);
     }
-
     _applyPositions();
   }
-
   function cdGoTo(idx) {
     _cdActive = idx;
     clearInterval(_cdAutoTimer);
@@ -885,7 +858,6 @@
     }
     _applyPositions();
   }
-
   function _applyPositions() {
     const n = _cdEntries.length;
     const STYLE = [
@@ -907,19 +879,16 @@
       dot.classList.toggle('active', parseInt(dot.dataset.idx) === _cdActive);
     });
   }
-
   function renderCountdown() {
     _buildCards(); // no-op if tzs haven't changed
     const status = getRaceStatus();
     const now    = new Date();
     let needRerender = false;
-
     _cdEntries.forEach(({ tz, players }, i) => {
       const dlIdx = Math.min(...players.map(p => getCurrentDeadlineIndexForPlayer(p)));
       const dl    = getPlayerDeadline(dlIdx, tz);
       const diff  = dl.getTime() - now.getTime();
       if (diff <= 0 && status.kind === 'live') needRerender = true;
-
       let d='00', h='00', m='00', s='00';
       if (status.kind === 'live' && diff > 0) {
         d = pad(Math.floor(diff / 86400000));
@@ -927,11 +896,9 @@
         m = pad(Math.floor((diff % 3600000)  / 60000));
         s = pad(Math.floor((diff % 60000)    / 1000));
       }
-
       const tzShort = now.toLocaleTimeString('en-US', { timeZone: tz, timeZoneName: 'short' }).split(' ').pop();
       const dlLocal = dl.toLocaleString('en-US', { timeZone: tz, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
       const names   = players.map(p => p.name).join(' & ');
-
       const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
       const setHTML = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
       set(`cdlbl${i}`, `${names} · ${tzShort}`);
@@ -939,10 +906,8 @@
       setHTML(`cddue${i}`, `Due <strong>${dlLocal}</strong>`);
       set(`cdd${i}`, d); set(`cdh${i}`, h); set(`cdm${i}`, m); set(`cds${i}`, s);
     });
-
     if (needRerender) render();
   }
-
   function renderPlayer(n) {
     const player = n===1 ? state.p1 : n===2 ? state.p2 : state.p3;
     const status = getRaceStatus();
@@ -950,24 +915,20 @@
     const nameEl   = document.getElementById(`p${n}-name`);
     const statusEl = document.getElementById(`p${n}-status`);
     const btn      = document.getElementById(`p${n}-btn`);
-
     if (document.activeElement !== nameEl) nameEl.textContent = player.name;
     document.getElementById(`p${n}-done`).textContent   = player.completed.length;
     document.getElementById(`p${n}-streak`).textContent = getStreak(player);
     const missed = getMissedFor(player);
     document.getElementById(`p${n}-missed`).textContent = missed.length;
-
     playerEl.classList.remove('eliminated','winner');
     if (status.kind==='winner'&&status.winner===n) { playerEl.classList.add('winner'); statusEl.textContent='Winner'; }
     else if (missed.length>0) { playerEl.classList.add('eliminated'); statusEl.textContent=`KO'd Day ${missed[0]+1}`; }
     else if (status.kind==='draw') { playerEl.classList.add('eliminated'); statusEl.textContent='Race Voided'; }
     else statusEl.textContent='Alive';
-
     const dlIdx = getCurrentDeadlineIndexForPlayer(player), cSet = new Set(player.completed);
     if (status.kind!=='live') { btn.textContent='Race Over'; btn.disabled=true; btn.classList.remove('done'); }
     else if (cSet.has(dlIdx)) { btn.textContent=`Done · Deadline #${dlIdx+1}`; btn.classList.add('done'); btn.disabled=false; }
     else { btn.textContent=`Mark Deadline #${dlIdx+1}`; btn.classList.remove('done'); btn.disabled=false; }
-
     const tzEl = document.getElementById(`p${n}-tz-label`);
     if (tzEl) {
       const tz = player.timezone||'UTC', now = new Date();
@@ -976,15 +937,12 @@
       const dlL = dl.toLocaleString('en-US',{timeZone:tz,month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
       tzEl.textContent=`${lt} local · next deadline ${dlL}`;
     }
-
     const locked = isRoundOneLocked();
     const nameEl2=document.getElementById(`p${n}-name`), tzSel=document.getElementById(`p${n}-tz-select`), tzWrap=document.getElementById(`p${n}-tz-wrap`);
     if (locked) { if(nameEl2){nameEl2.contentEditable='false';nameEl2.classList.add('locked');nameEl2.title='Locked after Round 1';} if(tzSel)tzSel.disabled=true; if(tzWrap)tzWrap.classList.add('locked'); }
     else { if(nameEl2){nameEl2.contentEditable='true';nameEl2.classList.remove('locked');nameEl2.title='Click to rename';} if(tzSel)tzSel.disabled=false; if(tzWrap)tzWrap.classList.remove('locked'); }
-
     const sel=document.getElementById(`p${n}-tz-select`); if(sel&&player.timezone)sel.value=player.timezone;
   }
-
   function renderBanner() {
     const banner=document.getElementById('banner'), status=getRaceStatus();
     banner.classList.remove('show','winner','draw');
@@ -999,17 +957,20 @@
       banner.classList.add('show','draw');
     }
   }
-
   function renderPot() {
     const months=getMonthsInRace(), pot=getPotTotal();
+    const activeNow=getCurrentActiveCount();
+    const combinedNow=activeNow*state.monthlyDeposit;
     document.getElementById('pot-months').textContent = months;
     document.getElementById('pot-total').textContent  = fmtMoney(pot);
-    document.getElementById('pot-sub').textContent    = `${months} month${months===1?'':'s'} × $${state.monthlyDeposit*3}/mo combined deposit`;
+    const activeEl=document.getElementById('pot-active');
+    if (activeEl) activeEl.textContent = `${activeNow} runner${activeNow===1?'':'s'}`;
+    const combinedEl=document.getElementById('pot-combined');
+    if (combinedEl) combinedEl.textContent = `$${fmtMoney(combinedNow)} / mo`;
+    document.getElementById('pot-sub').textContent    = `${activeNow} active runner${activeNow===1?'':'s'} × $${state.monthlyDeposit}/mo = $${fmtMoney(combinedNow)}/mo this month`;
     document.getElementById('pot-next').textContent   = fmtDate(getNextDepositDate());
   }
-
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
   let timelineExpanded = false;
   function renderTimeline() {
     const grid=document.getElementById('timeline-grid');
@@ -1019,9 +980,7 @@
     const p1tz=state.p1.timezone||'Australia/Melbourne', p2tz=state.p2.timezone||'Asia/Bangkok', p3tz=state.p3.timezone||'Australia/Melbourne';
     const pi1=getCurrentDeadlineIndexForPlayer(state.p1), pi2=getCurrentDeadlineIndexForPlayer(state.p2), pi3=getCurrentDeadlineIndexForPlayer(state.p3);
     const n1s=escapeHtml(state.p1.name), n2s=escapeHtml(state.p2.name), n3s=escapeHtml(state.p3.name);
-
     let html=`<div class="timeline-row head timeline-7col"><div class="timeline-cell idx">#</div><div class="timeline-cell">${n1s} due</div><div class="timeline-cell">${n2s} due</div><div class="timeline-cell">${n3s} due</div><div class="timeline-cell">${n1s}</div><div class="timeline-cell">${n2s}</div><div class="timeline-cell">${n3s}</div></div>`;
-
     for (let i=0;i<total;i++) {
       const dl1=getPlayerDeadline(i,p1tz), dl2=getPlayerDeadline(i,p2tz), dl3=getPlayerDeadline(i,p3tz);
       const isN1=i===pi1, isN2=i===pi2, isN3=i===pi3;
@@ -1033,10 +992,8 @@
     grid.innerHTML=html;
     document.getElementById('timeline-toggle-btn').textContent=timelineExpanded?'↑ Show Less':'Show All Upcoming →';
   }
-
   function render() { renderHero(); renderBanner(); renderPlayer(1); renderPlayer(2); renderPlayer(3); renderPot(); renderTimeline(); renderCountdown(); }
   function toggleTimelineRange() { timelineExpanded=!timelineExpanded; renderTimeline(); }
-
   // ════════════════════════════════════════════════════
   //  ACTIONS
   // ════════════════════════════════════════════════════
@@ -1048,26 +1005,22 @@
     else { player.completed.push(idx); player.completed.sort((a,b)=>a-b); toast(`✓ ${player.name} — Deadline #${idx+1}`); }
     saveState();
   }
-
   function renamePlayer(n, name) {
     name=String(name||'').trim().slice(0,40)||`Player ${n}`;
     if(n===1)state.p1.name=name; else if(n===2)state.p2.name=name; else state.p3.name=name;
     saveState();
   }
-
   function changeTimezone(n, tz) {
     if(isRoundOneLocked()){toast('Locked after Round 1');return;}
     if(n===1)state.p1.timezone=tz; else if(n===2)state.p2.timezone=tz; else state.p3.timezone=tz;
     saveState(); toast('Timezone updated');
   }
-
   function exportJSON() {
     const exp={...state,p1:{...state.p1,completed:[...state.p1.completed]},p2:{...state.p2,completed:[...state.p2.completed]},p3:{...state.p3,completed:[...state.p3.completed]}};
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(exp,null,2)],{type:'application/json'}));
     a.download=`bet-race-${state.startDate}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     toast('Exported JSON');
   }
-
   function importJSON(ev) {
     const file=ev.target.files[0]; if(!file)return;
     const r=new FileReader();
@@ -1084,13 +1037,11 @@
     };
     r.readAsText(file); ev.target.value='';
   }
-
   function confirmReset() {
     showModal({ title:'Reset the race?', text:'This wipes all logged videos for both runners. Cannot be undone.', confirmText:'Yes, reset', danger:true,
       onConfirm:()=>{ state.p1.completed=[]; state.p2.completed=[]; state.p3.completed=[]; saveState(); toast('Race reset'); }
     });
   }
-
   // ════════════════════════════════════════════════════
   //  MODAL & TOAST
   // ════════════════════════════════════════════════════
@@ -1104,13 +1055,11 @@
   }
   function closeModal(){document.getElementById('modal-bg').classList.remove('show');}
   document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target.id==='modal-bg')closeModal();});
-
   let toastTimer=null;
   function toast(msg){
     const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
     clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
   }
-
   // ════════════════════════════════════════════════════
   //  EDITABLE NAMES
   // ════════════════════════════════════════════════════
@@ -1122,7 +1071,6 @@
     el.addEventListener('blur',()=>renamePlayer(parseInt(el.dataset.player),el.textContent));
     el.addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text'));});
   });
-
   // ════════════════════════════════════════════════════
   //  NAV SCROLL & REVEAL
   // ════════════════════════════════════════════════════
@@ -1130,7 +1078,6 @@
   const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
   document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
   document.querySelectorAll('.hero .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),200+i*110));
-
   // ════════════════════════════════════════════════════
   //  BOOT
   // ════════════════════════════════════════════════════
